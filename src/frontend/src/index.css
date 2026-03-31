@@ -8,11 +8,11 @@
   :root {
     --radius: 0.75rem;
 
-    /* Qicky Brand — Orange/Coral primary */
-    --brand: 0.65 0.175 30;
-    --brand-dark: 0.58 0.175 30;
-    --brand-light: 0.92 0.06 30;
-    --navy: 0.2 0.045 230;
+    /* Qicky Brand — Deep Burgundy/Maroon primary */
+    --brand: 0.4 0.14 12;
+    --brand-dark: 0.33 0.12 12;
+    --brand-light: 0.96 0.02 12;
+    --navy: 0.14 0.055 10;
 
     /* Semantic tokens */
     --background: 0.985 0 0;
@@ -21,19 +21,19 @@
     --card-foreground: 0.18 0 0;
     --popover: 1 0 0;
     --popover-foreground: 0.18 0 0;
-    --primary: 0.65 0.175 30;
+    --primary: 0.4 0.14 12;
     --primary-foreground: 1 0 0;
     --secondary: 0.97 0 0;
     --secondary-foreground: 0.18 0 0;
     --muted: 0.97 0 0;
     --muted-foreground: 0.5 0.01 260;
-    --accent: 0.92 0.06 30;
+    --accent: 0.96 0.02 12;
     --accent-foreground: 0.18 0 0;
     --destructive: 0.577 0.245 27.325;
     --destructive-foreground: 1 0 0;
     --border: 0.88 0.01 260;
     --input: 0.88 0.01 260;
-    --ring: 0.65 0.175 30;
+    --ring: 0.4 0.14 12;
     --chart-1: 0.646 0.222 41.116;
     --chart-2: 0.6 0.118 184.704;
     --chart-3: 0.398 0.07 227.392;
@@ -41,12 +41,12 @@
     --chart-5: 0.769 0.188 70.08;
     --sidebar: 0.985 0 0;
     --sidebar-foreground: 0.18 0 0;
-    --sidebar-primary: 0.65 0.175 30;
+    --sidebar-primary: 0.4 0.14 12;
     --sidebar-primary-foreground: 1 0 0;
     --sidebar-accent: 0.97 0 0;
     --sidebar-accent-foreground: 0.18 0 0;
     --sidebar-border: 0.88 0.01 260;
-    --sidebar-ring: 0.65 0.175 30;
+    --sidebar-ring: 0.4 0.14 12;
   }
 
   * {
