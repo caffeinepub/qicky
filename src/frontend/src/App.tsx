@@ -18,6 +18,7 @@ import {
   Percent,
   RefreshCw,
   Shield,
+  ShieldCheck,
   Smartphone,
   Star,
   TrendingUp,
@@ -65,7 +66,7 @@ interface AltLender {
   utmLink: string;
 }
 
-const ALT_LENDERS: AltLender[] = [
+const _ALT_LENDERS: AltLender[] = [
   {
     id: "muthoot",
     name: "Muthoot Finance",
@@ -273,12 +274,29 @@ function OtpInput({
   );
 }
 
+// ─── EMI Helpers ──────────────────────────────────────────────────────────────
+function calcEMI(
+  principal: number,
+  annualRate: number,
+  months: number,
+): number {
+  const r = annualRate / 100 / 12;
+  if (r === 0) return principal / months;
+  return (principal * r * (1 + r) ** months) / ((1 + r) ** months - 1);
+}
+function fmtINR(n: number): string {
+  return new Intl.NumberFormat("en-IN").format(Math.round(n));
+}
+
 // ─── Landing Step ─────────────────────────────────────────────────────────────
 function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
   const [form, setForm] = useState<FormData>({ name: "", mobile: "" });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [statsVisible, setStatsVisible] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
+  const [emiAmount, setEmiAmount] = useState(500000);
+  const [emiRate, setEmiRate] = useState(12);
+  const [emiTenure, setEmiTenure] = useState(36);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -577,6 +595,195 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
         </div>
       </section>
 
+      {/* EMI Calculator Section */}
+      <section className="bg-[#FAFAFA] py-16 px-6" id="emi-calculator">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-brand-light text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
+              Calculate Your EMI
+            </div>
+            <h3 className="text-2xl font-bold text-foreground">
+              EMI Calculator
+            </h3>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Plan your loan repayment before you apply
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg border border-border overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              {/* Sliders */}
+              <div className="p-8 space-y-8">
+                {/* Loan Amount */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      Loan Amount
+                    </span>
+                    <span className="text-sm font-bold text-brand bg-brand-light px-3 py-1 rounded-full">
+                      ₹{fmtINR(emiAmount)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50000}
+                    max={1500000}
+                    step={10000}
+                    value={emiAmount}
+                    onChange={(e) => setEmiAmount(Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer accent-brand"
+                    style={{
+                      background: `linear-gradient(to right, #800020 ${((emiAmount - 50000) / (1500000 - 50000)) * 100}%, #e5e7eb ${((emiAmount - 50000) / (1500000 - 50000)) * 100}%)`,
+                    }}
+                    data-ocid="emi.amount.input"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>₹50,000</span>
+                    <span>₹15,00,000</span>
+                  </div>
+                </div>
+
+                {/* Interest Rate */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      Interest Rate (p.a.)
+                    </span>
+                    <span className="text-sm font-bold text-brand bg-brand-light px-3 py-1 rounded-full">
+                      {emiRate}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={9}
+                    max={36}
+                    step={0.5}
+                    value={emiRate}
+                    onChange={(e) => setEmiRate(Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer accent-brand"
+                    style={{
+                      background: `linear-gradient(to right, #800020 ${((emiRate - 9) / (36 - 9)) * 100}%, #e5e7eb ${((emiRate - 9) / (36 - 9)) * 100}%)`,
+                    }}
+                    data-ocid="emi.rate.input"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>9%</span>
+                    <span>36%</span>
+                  </div>
+                </div>
+
+                {/* Tenure */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      Loan Tenure
+                    </span>
+                    <span className="text-sm font-bold text-brand bg-brand-light px-3 py-1 rounded-full">
+                      {emiTenure} months
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={6}
+                    max={60}
+                    step={6}
+                    value={emiTenure}
+                    onChange={(e) => setEmiTenure(Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer accent-brand"
+                    style={{
+                      background: `linear-gradient(to right, #800020 ${((emiTenure - 6) / (60 - 6)) * 100}%, #e5e7eb ${((emiTenure - 6) / (60 - 6)) * 100}%)`,
+                    }}
+                    data-ocid="emi.tenure.input"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>6 mo</span>
+                    <span>60 mo</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Results */}
+              <div className="bg-gradient-to-br from-brand to-[#5c001a] p-8 flex flex-col justify-between text-white">
+                <div>
+                  <p className="text-white/70 text-sm font-medium mb-1">
+                    Monthly EMI
+                  </p>
+                  <p className="text-4xl font-extrabold tracking-tight">
+                    ₹{fmtINR(calcEMI(emiAmount, emiRate, emiTenure))}
+                  </p>
+                  <p className="text-white/60 text-xs mt-1">
+                    per month for {emiTenure} months
+                  </p>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/70">Principal Amount</span>
+                    <span className="font-semibold">₹{fmtINR(emiAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/70">Total Interest</span>
+                    <span className="font-semibold">
+                      ₹
+                      {fmtINR(
+                        calcEMI(emiAmount, emiRate, emiTenure) * emiTenure -
+                          emiAmount,
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-white/20 pt-3">
+                    <span className="text-white/70">Total Payable</span>
+                    <span className="font-bold text-base">
+                      ₹
+                      {fmtINR(
+                        calcEMI(emiAmount, emiRate, emiTenure) * emiTenure,
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stacked bar */}
+                <div className="mt-6">
+                  <p className="text-white/60 text-xs mb-2">Breakup</p>
+                  <div className="flex h-5 rounded-full overflow-hidden w-full">
+                    <div
+                      className="bg-white/90"
+                      style={{
+                        width: `${(emiAmount / (calcEMI(emiAmount, emiRate, emiTenure) * emiTenure)) * 100}%`,
+                      }}
+                    />
+                    <div className="bg-white/30 flex-1" />
+                  </div>
+                  <div className="flex gap-4 mt-2 text-xs text-white/70">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-white/90 inline-block" />
+                      Principal
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-white/30 inline-block" />
+                      Interest
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() =>
+                    document
+                      .getElementById("full-name")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                  className="mt-6 w-full bg-white text-brand font-bold py-3 rounded-xl hover:bg-white/90 transition-all duration-200 text-sm"
+                  type="button"
+                  data-ocid="emi.primary_button"
+                >
+                  Check Your Eligibility →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="bg-white py-16 px-6">
         <div className="max-w-5xl mx-auto">
@@ -814,6 +1021,10 @@ function OtpStep({
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState("");
+  const [showPanModal, setShowPanModal] = useState(false);
+  const [showManualPan, setShowManualPan] = useState(false);
+  const [manualPan, setManualPan] = useState("");
+  const [panError, setPanError] = useState("");
 
   useEffect(() => {
     if (timer <= 0) {
@@ -838,181 +1049,330 @@ function OtpStep({
       return;
     }
     setError("");
+    setShowPanModal(true);
+  };
+
+  const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+  const handleManualPanContinue = () => {
+    const pan = manualPan.trim().toUpperCase();
+    if (!PAN_REGEX.test(pan)) {
+      setPanError("Please enter a valid 10-character PAN (e.g. ABCDE1234F)");
+      return;
+    }
+    setPanError("");
+    setShowManualPan(false);
+    setShowPanModal(false);
     onVerify();
   };
 
   const maskedMobile = `+91 ${mobile.slice(0, 2)}****${mobile.slice(-3)}`;
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left: Hero panel */}
-      <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 overflow-hidden"
-        style={{
-          backgroundImage: "url(/assets/generated/hero-loan.dim_760x900.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/95 via-navy/60 to-navy/20" />
+    <>
+      <div className="min-h-screen flex flex-col lg:flex-row">
+        {/* Left: Hero panel */}
         <div
-          className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none"
+          className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 overflow-hidden"
           style={{
-            background:
-              "radial-gradient(circle, oklch(0.40 0.14 12 / 0.3) 0%, transparent 70%)",
-            transform: "translate(-20%, 20%)",
+            backgroundImage: "url(/assets/generated/hero-loan.dim_760x900.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center top",
           }}
-        />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-8">
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/95 via-navy/60 to-navy/20" />
+          <div
+            className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle, oklch(0.40 0.14 12 / 0.3) 0%, transparent 70%)",
+              transform: "translate(-20%, 20%)",
+            }}
+          />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-8">
+              <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white fill-white" />
+              </div>
+              <span className="text-2xl font-extrabold text-white">Qicky</span>
+            </div>
+            <div className="inline-flex items-center gap-2 bg-brand/20 backdrop-blur-sm border border-brand/30 text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
+              <Star className="w-3.5 h-3.5 fill-brand text-brand" />
+              Trusted by 5.7 Crore+ Indians
+            </div>
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
+              Quick disbursals with
+              <br />
+              <span className="text-brand">minimal documentation</span>
+            </h1>
+            <p className="text-white/80 text-lg leading-relaxed max-w-md">
+              Get your instant personal loan in 15 minutes by following just 4
+              easy steps.
+            </p>
+            <div className="flex gap-6 mt-8">
+              {STATS.map((s) => (
+                <div key={s.label}>
+                  <div className="text-2xl font-extrabold text-white">
+                    {s.value}
+                  </div>
+                  <div className="text-white/60 text-xs mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: OTP panel */}
+        <div className="w-full lg:w-1/2 min-h-screen bg-[#FAFAFA] flex flex-col px-6 py-10 lg:px-14 relative overflow-hidden">
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="absolute top-0 left-0 right-0 h-1 origin-left"
+            style={{
+              background:
+                "linear-gradient(90deg, oklch(0.40 0.14 12), oklch(0.55 0.18 12), oklch(0.40 0.14 12))",
+            }}
+          />
+          <div className="flex items-center gap-2 mb-10">
             <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center">
               <Zap className="w-5 h-5 text-white fill-white" />
             </div>
-            <span className="text-2xl font-extrabold text-white">Qicky</span>
+            <span className="text-2xl font-extrabold text-foreground">
+              Qicky
+            </span>
           </div>
-          <div className="inline-flex items-center gap-2 bg-brand/20 backdrop-blur-sm border border-brand/30 text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
-            <Star className="w-3.5 h-3.5 fill-brand text-brand" />
-            Trusted by 5.7 Crore+ Indians
-          </div>
-          <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
-            Quick disbursals with
-            <br />
-            <span className="text-brand">minimal documentation</span>
-          </h1>
-          <p className="text-white/80 text-lg leading-relaxed max-w-md">
-            Get your instant personal loan in 15 minutes by following just 4
-            easy steps.
-          </p>
-          <div className="flex gap-6 mt-8">
-            {STATS.map((s) => (
-              <div key={s.label}>
-                <div className="text-2xl font-extrabold text-white">
-                  {s.value}
-                </div>
-                <div className="text-white/60 text-xs mt-0.5">{s.label}</div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="flex-1 flex flex-col justify-center max-w-md w-full mx-auto lg:mx-0"
+            data-ocid="otp.panel"
+          >
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-border">
+              <div className="w-14 h-14 rounded-2xl bg-brand-light flex items-center justify-center mb-6">
+                <Smartphone className="w-7 h-7 text-brand" />
               </div>
-            ))}
-          </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                OTP has been sent to your phone
+              </h2>
+              <p className="text-muted-foreground text-sm mb-7 leading-relaxed">
+                Kindly enter the code sent by Qicky to{" "}
+                <span className="font-semibold text-foreground">
+                  {maskedMobile}
+                </span>{" "}
+                to complete verification
+              </p>
+              <OtpInput value={otp} onChange={setOtp} />
+              {error && (
+                <p
+                  className="text-destructive text-xs text-center mt-3"
+                  data-ocid="otp.error_state"
+                >
+                  {error}
+                </p>
+              )}
+              <div className="text-center mt-5 text-sm text-muted-foreground">
+                {canResend ? (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    className="text-brand font-semibold hover:underline inline-flex items-center gap-1.5"
+                    data-ocid="otp.resend.button"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Resend OTP
+                  </button>
+                ) : (
+                  <span>
+                    Resend{" "}
+                    <span className="font-semibold text-foreground">
+                      (in {timer} seconds)
+                    </span>
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleVerify}
+                data-ocid="otp.submit_button"
+                className="w-full mt-7 py-3.5 bg-brand hover:bg-brand-dark text-white font-bold
+                rounded-xl flex items-center justify-center gap-2 transition-colors text-base shadow-md"
+              >
+                Verify
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={onBack}
+                data-ocid="otp.back.button"
+                className="w-full mt-3 py-2.5 text-muted-foreground hover:text-foreground
+                flex items-center justify-center gap-1.5 text-sm transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div
+                className="rounded-xl p-4 flex items-start gap-3"
+                style={{ backgroundColor: "#FFF3DC" }}
+              >
+                <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-amber-600" />
+                </div>
+                <p className="text-xs font-semibold text-amber-900 leading-snug">
+                  Must be a salaried professional
+                </p>
+              </div>
+              <div
+                className="rounded-xl p-4 flex items-start gap-3"
+                style={{ backgroundColor: "#C8E6A0" }}
+              >
+                <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+                  <IndianRupee className="w-4 h-4 text-green-700" />
+                </div>
+                <p className="text-xs font-semibold text-green-900 leading-snug">
+                  Minimum monthly salary of ₹20,000
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Right: OTP panel */}
-      <div className="w-full lg:w-1/2 min-h-screen bg-[#FAFAFA] flex flex-col px-6 py-10 lg:px-14 relative overflow-hidden">
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-          className="absolute top-0 left-0 right-0 h-1 origin-left"
-          style={{
-            background:
-              "linear-gradient(90deg, oklch(0.40 0.14 12), oklch(0.55 0.18 12), oklch(0.40 0.14 12))",
-          }}
-        />
-        <div className="flex items-center gap-2 mb-10">
-          <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white fill-white" />
-          </div>
-          <span className="text-2xl font-extrabold text-foreground">Qicky</span>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="flex-1 flex flex-col justify-center max-w-md w-full mx-auto lg:mx-0"
-          data-ocid="otp.panel"
+      {/* PAN Details Modal */}
+      {showPanModal && !showManualPan && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+          data-ocid="pan.modal"
         >
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-border">
-            <div className="w-14 h-14 rounded-2xl bg-brand-light flex items-center justify-center mb-6">
-              <Smartphone className="w-7 h-7 text-brand" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              OTP has been sent to your phone
-            </h2>
-            <p className="text-muted-foreground text-sm mb-7 leading-relaxed">
-              Kindly enter the code sent by Qicky to{" "}
-              <span className="font-semibold text-foreground">
-                {maskedMobile}
-              </span>{" "}
-              to complete verification
-            </p>
-            <OtpInput value={otp} onChange={setOtp} />
-            {error && (
-              <p
-                className="text-destructive text-xs text-center mt-3"
-                data-ocid="otp.error_state"
-              >
-                {error}
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md px-6 py-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center mb-4">
+                <ShieldCheck className="w-7 h-7 text-brand" />
+              </div>
+              <h2 className="text-xl font-extrabold text-foreground mb-2">
+                PAN Details Found
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                A PAN linked to your mobile number has been found. Please
+                confirm if this is your PAN.
               </p>
-            )}
-            <div className="text-center mt-5 text-sm text-muted-foreground">
-              {canResend ? (
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  className="text-brand font-semibold hover:underline inline-flex items-center gap-1.5"
-                  data-ocid="otp.resend.button"
+            </div>
+            <div className="rounded-xl border-2 border-brand/30 bg-brand/5 px-6 py-4 text-center mb-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">
+                PAN Number
+              </p>
+              <p className="text-2xl font-extrabold tracking-[0.25em] text-brand font-mono">
+                ABCDE1234F
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mb-6 leading-relaxed px-2">
+              This PAN was auto-filled to speed up the process. If this is not
+              your PAN, you may enter it manually.
+            </p>
+            <button
+              type="button"
+              data-ocid="pan.confirm_button"
+              onClick={() => {
+                setShowPanModal(false);
+                onVerify();
+              }}
+              className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors text-base shadow-md mb-3"
+            >
+              Yes, This Is My PAN
+            </button>
+            <button
+              type="button"
+              data-ocid="pan.manual_button"
+              onClick={() => setShowManualPan(true)}
+              className="w-full py-3 border-2 border-brand text-brand font-bold rounded-xl hover:bg-brand/5 transition-colors text-base"
+            >
+              No, Enter Manually
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual PAN Entry Modal */}
+      {showManualPan && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+          data-ocid="pan.manual.modal"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md px-6 py-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center mb-4">
+                <CreditCard className="w-7 h-7 text-brand" />
+              </div>
+              <h2 className="text-xl font-extrabold text-foreground mb-2">
+                Enter Your PAN
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Please enter your PAN number to continue
+              </p>
+            </div>
+            <div className="mb-6">
+              <label
+                htmlFor="pan-input"
+                className="block text-sm font-semibold text-foreground mb-2"
+              >
+                PAN Number
+              </label>
+              <input
+                type="text"
+                maxLength={10}
+                value={manualPan}
+                onChange={(e) => {
+                  setManualPan(e.target.value.toUpperCase());
+                  setPanError("");
+                }}
+                placeholder="e.g. ABCDE1234F"
+                id="pan-input"
+                data-ocid="pan.input"
+                className="w-full border-2 border-gray-200 focus:border-brand rounded-xl px-4 py-3 text-base font-mono tracking-widest outline-none transition-colors uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-sans"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                10-character alphanumeric (e.g. ABCDE1234F)
+              </p>
+              {panError && (
+                <p
+                  className="text-xs text-destructive mt-2"
+                  data-ocid="pan.error_state"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Resend OTP
-                </button>
-              ) : (
-                <span>
-                  Resend{" "}
-                  <span className="font-semibold text-foreground">
-                    (in {timer} seconds)
-                  </span>
-                </span>
+                  {panError}
+                </p>
               )}
             </div>
             <button
               type="button"
-              onClick={handleVerify}
-              data-ocid="otp.submit_button"
-              className="w-full mt-7 py-3.5 bg-brand hover:bg-brand-dark text-white font-bold
-                rounded-xl flex items-center justify-center gap-2 transition-colors text-base shadow-md"
+              data-ocid="pan.submit_button"
+              onClick={handleManualPanContinue}
+              className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors text-base shadow-md mb-3"
             >
-              Verify
-              <ArrowRight className="w-5 h-5" />
+              Continue
             </button>
             <button
               type="button"
-              onClick={onBack}
-              data-ocid="otp.back.button"
-              className="w-full mt-3 py-2.5 text-muted-foreground hover:text-foreground
-                flex items-center justify-center gap-1.5 text-sm transition-colors"
+              data-ocid="pan.back.button"
+              onClick={() => {
+                setShowManualPan(false);
+                setManualPan("");
+                setPanError("");
+              }}
+              className="w-full py-2.5 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 text-sm transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              Back
+              Back to PAN Confirmation
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div
-              className="rounded-xl p-4 flex items-start gap-3"
-              style={{ backgroundColor: "#FFF3DC" }}
-            >
-              <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
-                <User className="w-4 h-4 text-amber-600" />
-              </div>
-              <p className="text-xs font-semibold text-amber-900 leading-snug">
-                Must be a salaried professional
-              </p>
-            </div>
-            <div
-              className="rounded-xl p-4 flex items-start gap-3"
-              style={{ backgroundColor: "#C8E6A0" }}
-            >
-              <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
-                <IndianRupee className="w-4 h-4 text-green-700" />
-              </div>
-              <p className="text-xs font-semibold text-green-900 leading-snug">
-                Minimum monthly salary of ₹20,000
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1599,36 +1959,6 @@ function useCountdown(initialSeconds: number) {
   return `${h}:${m}:${s}`;
 }
 
-// ─── Approval Bar ─────────────────────────────────────────────────────────────
-function ApprovalBar({ chance }: { chance: number }) {
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    const id = setTimeout(() => setWidth(chance), 200);
-    return () => clearTimeout(id);
-  }, [chance]);
-
-  const color = chance >= 85 ? "#10B981" : chance >= 70 ? "#F59E0B" : "#F97316";
-
-  return (
-    <div className="mt-3">
-      <div className="flex justify-between items-center mb-1.5">
-        <span className="text-xs text-muted-foreground font-medium tracking-wide">
-          APPROVAL CHANCE
-        </span>
-        <span className="text-sm font-extrabold" style={{ color }}>
-          {chance}%
-        </span>
-      </div>
-      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-1000 ease-out"
-          style={{ width: `${width}%`, backgroundColor: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
 // ─── Lender Card ──────────────────────────────────────────────────────────────
 function LenderCard({
   lender,
@@ -1641,140 +1971,167 @@ function LenderCard({
   index: number;
   onApply: (lender: Lender) => void;
 }) {
+  const [hovered, setHovered] = useState(false);
+  const isBest = lender.bestMatch;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="relative rounded-2xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow"
+      initial={{ opacity: 0, x: -24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.07 }}
       data-ocid={`offers.item.${index + 1}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative flex items-center gap-3 px-4 py-3 transition-all duration-200 cursor-default"
       style={{
-        borderColor: lender.bestMatch ? "oklch(0.40 0.14 12 / 0.5)" : "#e5e7eb",
-        boxShadow: lender.bestMatch
-          ? "0 0 0 2px oklch(0.40 0.14 12 / 0.15)"
-          : undefined,
+        borderLeft: `3px solid ${isBest ? "oklch(0.40 0.14 12)" : lender.logoColor}`,
+        background: hovered
+          ? isBest
+            ? "oklch(0.40 0.14 12 / 0.05)"
+            : `${lender.logoColor}08`
+          : isBest
+            ? "oklch(0.40 0.14 12 / 0.025)"
+            : "white",
+        transform: hovered ? "translateY(-1px)" : "translateY(0px)",
+        boxShadow: hovered
+          ? "0 4px 16px rgba(0,0,0,0.08)"
+          : isBest
+            ? "0 2px 8px rgba(0,0,0,0.04)"
+            : "none",
+        borderBottom: "1px solid #f1f3f5",
       }}
     >
-      {/* Best Match banner */}
-      {lender.bestMatch && (
+      {/* Col 1: Lender identity (flex ~28%) */}
+      <div
+        className="flex items-center gap-2.5 min-w-0"
+        style={{ flex: "0 0 28%" }}
+      >
         <div
-          className="text-center py-1.5 text-xs font-bold tracking-wider text-white"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-xs shrink-0 shadow-sm"
+          style={{ backgroundColor: lender.logoColor }}
+        >
+          {lender.logoInitial}
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-extrabold text-foreground text-xs leading-tight">
+              {lender.name}
+            </span>
+            <span
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
+              style={
+                lender.category === "nbfc"
+                  ? {
+                      background: "oklch(0.40 0.14 12 / 0.08)",
+                      color: "oklch(0.40 0.14 12)",
+                    }
+                  : {
+                      background: "oklch(0.55 0.14 155 / 0.10)",
+                      color: "oklch(0.35 0.14 155)",
+                    }
+              }
+            >
+              {lender.category === "nbfc" ? "NBFC" : "SFB"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+            {isBest && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brand text-white leading-none">
+                BEST
+              </span>
+            )}
+            {lender.recommended && (
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 leading-none">
+                🔥 Top Pick
+              </span>
+            )}
+            {lender.limitedOffer && (
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 leading-none">
+                ⏰ {countdown}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Col 2: Rate */}
+      <div className="text-center" style={{ flex: "0 0 11%" }}>
+        <div className="font-extrabold text-foreground text-sm leading-none">
+          {lender.interestRate}%
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-0.5">p.a.</div>
+      </div>
+
+      {/* Col 3: Max Loan */}
+      <div className="text-center" style={{ flex: "0 0 13%" }}>
+        <div className="font-bold text-foreground text-xs leading-tight">
+          ₹{lender.maxAmount}
+        </div>
+        <div className="text-[10px] text-muted-foreground">max</div>
+      </div>
+
+      {/* Col 4: Tenure */}
+      <div className="text-center" style={{ flex: "0 0 10%" }}>
+        <div className="font-bold text-foreground text-xs">{lender.tenure}</div>
+        <div className="text-[10px] text-muted-foreground">yrs</div>
+      </div>
+
+      {/* Col 5: Fee */}
+      <div className="text-center" style={{ flex: "0 0 11%" }}>
+        <div className="font-bold text-foreground text-xs">
+          {lender.processingFee}
+        </div>
+        <div className="text-[10px] text-muted-foreground">fee</div>
+      </div>
+
+      {/* Col 6: Approval bar */}
+      <div style={{ flex: "0 0 15%" }}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] text-muted-foreground">Approval</span>
+          <span
+            className="text-[10px] font-bold"
+            style={{ color: lender.logoColor }}
+          >
+            {lender.approvalChance}%
+          </span>
+        </div>
+        <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${lender.approvalChance}%` }}
+            transition={{
+              duration: 0.8,
+              delay: index * 0.07 + 0.3,
+              ease: "easeOut",
+            }}
+            className="h-full rounded-full"
+            style={{
+              background:
+                lender.approvalChance >= 90
+                  ? "linear-gradient(90deg, #10b981, #34d399)"
+                  : lender.approvalChance >= 75
+                    ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
+                    : "linear-gradient(90deg, #ef4444, #f87171)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Col 7: CTA */}
+      <div className="flex justify-end" style={{ flex: "0 0 12%" }}>
+        <button
+          type="button"
+          onClick={() => onApply(lender)}
+          data-ocid={`offers.item.${index + 1}.button`}
+          className="px-3 py-2 rounded-xl font-bold text-xs text-white whitespace-nowrap transition-all hover:opacity-90 active:scale-95"
           style={{
-            background:
-              "linear-gradient(90deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))",
+            background: isBest
+              ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))"
+              : `linear-gradient(135deg, ${lender.logoColor}ee, ${lender.logoColor}aa)`,
           }}
         >
-          ✅ BEST MATCH FOR YOU
-        </div>
-      )}
-
-      <div className={`p-5 ${lender.bestMatch ? "" : ""}`}>
-        {/* Badge row */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {lender.recommended && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-200">
-              🔥 Recommended for You
-            </span>
-          )}
-          {lender.limitedOffer && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
-              ⏰ Limited Time Offer
-            </span>
-          )}
-        </div>
-
-        {/* Header row */}
-        <div className="flex items-center gap-3 mb-1">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-extrabold text-sm shrink-0"
-            style={{ backgroundColor: lender.logoColor }}
-          >
-            {lender.logoInitial}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-extrabold text-foreground text-base leading-tight">
-                {lender.name}
-              </h3>
-              {lender.fullName && (
-                <span className="text-muted-foreground text-xs">
-                  ({lender.fullName})
-                </span>
-              )}
-            </div>
-            <p className="text-muted-foreground text-xs mt-0.5 leading-snug">
-              {lender.tagline}
-            </p>
-          </div>
-          <div className="shrink-0 px-3 py-1.5 rounded-lg text-center bg-gray-50 border border-gray-100">
-            <div className="text-foreground font-extrabold text-sm">
-              {lender.interestRate}%
-            </div>
-            <div className="text-muted-foreground text-xs">p.a.</div>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2 mt-4 rounded-xl p-3 bg-gray-50">
-          <div className="text-center">
-            <div className="text-muted-foreground text-xs mb-0.5">Max Loan</div>
-            <div className="text-foreground font-bold text-sm">
-              ₹{lender.maxAmount}
-            </div>
-          </div>
-          <div className="text-center border-x border-gray-200">
-            <div className="text-muted-foreground text-xs mb-0.5">Tenure</div>
-            <div className="text-foreground font-bold text-sm">
-              {lender.tenure}
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-muted-foreground text-xs mb-0.5">
-              Proc. Fee
-            </div>
-            <div className="text-foreground font-bold text-sm">
-              {lender.processingFee}
-            </div>
-          </div>
-        </div>
-
-        {/* Approval bar */}
-        <ApprovalBar chance={lender.approvalChance} />
-
-        {/* Countdown */}
-        {lender.limitedOffer && (
-          <div className="mt-3 flex items-center justify-between rounded-lg px-3 py-2 bg-red-50 border border-red-100">
-            <span className="text-xs text-red-600 font-medium">
-              ⏰ Offer expires in
-            </span>
-            <span className="text-red-600 font-mono font-extrabold text-sm tracking-wider">
-              {countdown}
-            </span>
-          </div>
-        )}
-
-        {/* CTA row */}
-        <div className="flex gap-2.5 mt-4">
-          <button
-            type="button"
-            onClick={() => onApply(lender)}
-            data-ocid={`offers.item.${index + 1}.button`}
-            className="flex-1 py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-95"
-            style={{
-              background: lender.bestMatch
-                ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))"
-                : `linear-gradient(135deg, ${lender.logoColor}dd, ${lender.logoColor}99)`,
-            }}
-          >
-            Apply Now →
-          </button>
-          <button
-            type="button"
-            className="px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-gray-100 border border-gray-200 text-foreground"
-          >
-            Details
-          </button>
-        </div>
+          Apply →
+        </button>
       </div>
     </motion.div>
   );
@@ -1808,8 +2165,6 @@ function OffersStep({
     return b.approvalChance - a.approvalChance;
   });
 
-  const nbfcLenders = sortedLenders.filter((l) => l.category === "nbfc");
-  const sfbLenders = sortedLenders.filter((l) => l.category === "sfb");
   const bestLender = LENDERS.find((l) => l.bestMatch)!;
 
   const SORT_TABS: { key: SortMode; label: string }[] = [
@@ -1818,23 +2173,35 @@ function OffersStep({
     { key: "amount", label: "Highest Amount" },
   ];
 
+  const COL_HEADERS = [
+    { label: "Lender", flex: "0 0 28%" },
+    { label: "Rate", flex: "0 0 11%" },
+    { label: "Max Loan", flex: "0 0 13%" },
+    { label: "Tenure", flex: "0 0 10%" },
+    { label: "Fee", flex: "0 0 11%" },
+    { label: "Approval", flex: "0 0 15%" },
+    { label: "Action", flex: "0 0 12%" },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F8F6F5] pb-28">
+    <div className="min-h-screen bg-[#F8F6F5] pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm px-4 py-4 flex items-center gap-3 border-b border-gray-200">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm px-4 py-3 flex items-center gap-3 border-b border-gray-200">
         <button
           type="button"
           onClick={onBack}
           data-ocid="offers.back.button"
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-200"
+          className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-200"
         >
           <ChevronLeft className="w-4 h-4 text-muted-foreground" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white fill-white" />
+          <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white fill-white" />
           </div>
-          <span className="font-extrabold text-foreground text-lg">Qicky</span>
+          <span className="font-extrabold text-foreground text-base">
+            Qicky
+          </span>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -1842,36 +2209,38 @@ function OffersStep({
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-8">
+      <div className="max-w-4xl mx-auto px-4 pt-5">
         {/* Hero text */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
+          transition={{ duration: 0.4 }}
+          className="mb-4"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4 bg-brand-light text-brand">
-            <CheckCircle2 className="w-3.5 h-3.5" />5 lenders matched · Updated
-            just now
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-light text-brand">
+              <CheckCircle2 className="w-3.5 h-3.5" />5 lenders matched ·
+              Updated just now
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-foreground leading-tight mt-2">
             Your Pre-Approved Offers,{" "}
             <span className="text-brand">{firstName} 🎉</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-2">
-            Matched from 65+ lenders based on your profile
+          <p className="text-muted-foreground text-xs mt-1">
+            Compare all offers below and apply instantly.
           </p>
         </motion.div>
 
         {/* Sort tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
           {SORT_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setSort(tab.key)}
               data-ocid={`offers.${tab.key}.tab`}
-              className="shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
+              className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border"
               style={
                 sort === tab.key
                   ? {
@@ -1892,17 +2261,37 @@ function OffersStep({
           ))}
         </div>
 
-        {/* NBFC Section */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-lg">🏆</span>
-            <h2 className="font-extrabold text-foreground">Top NBFC Picks</h2>
-            <span className="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold bg-brand-light text-brand">
-              {nbfcLenders.length} offers
-            </span>
+        {/* Comparison table */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white mb-4"
+        >
+          {/* Column headers */}
+          <div
+            className="flex items-center gap-3 px-4 py-2.5"
+            style={{
+              background:
+                "linear-gradient(90deg, oklch(0.40 0.14 12 / 0.06), oklch(0.50 0.16 12 / 0.03))",
+              borderBottom: "1.5px solid oklch(0.40 0.14 12 / 0.12)",
+              paddingLeft: "calc(1rem + 3px)",
+            }}
+          >
+            {COL_HEADERS.map((col) => (
+              <div
+                key={col.label}
+                className="text-[10px] font-bold uppercase tracking-widest text-brand/70"
+                style={{ flex: col.flex }}
+              >
+                {col.label}
+              </div>
+            ))}
           </div>
-          <div className="space-y-4">
-            {nbfcLenders.map((lender, i) => (
+
+          {/* Lender rows */}
+          <div className="divide-y divide-gray-50">
+            {sortedLenders.map((lender, i) => (
               <LenderCard
                 key={lender.id}
                 lender={lender}
@@ -1912,51 +2301,34 @@ function OffersStep({
               />
             ))}
           </div>
-        </div>
-
-        {/* SFB Section */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-lg">🏦</span>
-            <h2 className="font-extrabold text-foreground">
-              Small Finance Banks
-            </h2>
-            <span className="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold bg-green-50 text-green-700">
-              {sfbLenders.length} offer
-            </span>
-          </div>
-          <div className="space-y-4">
-            {sfbLenders.map((lender, i) => (
-              <LenderCard
-                key={lender.id}
-                lender={lender}
-                countdown={countdown}
-                index={nbfcLenders.length + i}
-                onApply={onApply}
-              />
-            ))}
-          </div>
-        </div>
+        </motion.div>
 
         {/* Trust strip */}
-        <div className="rounded-2xl p-4 flex items-center justify-around mt-6 mb-4 bg-white border border-gray-200">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="rounded-2xl p-3 flex items-center justify-around mb-4 bg-white border border-gray-200"
+        >
           <div className="text-center">
-            <div className="text-lg font-extrabold text-foreground">5.7cr+</div>
+            <div className="text-base font-extrabold text-foreground">
+              5.7cr+
+            </div>
             <div className="text-xs text-muted-foreground">Customers</div>
           </div>
-          <div className="w-px h-8 bg-gray-200" />
+          <div className="w-px h-7 bg-gray-200" />
           <div className="text-center">
-            <div className="text-lg font-extrabold text-foreground">65+</div>
+            <div className="text-base font-extrabold text-foreground">65+</div>
             <div className="text-xs text-muted-foreground">Lenders</div>
           </div>
-          <div className="w-px h-8 bg-gray-200" />
+          <div className="w-px h-7 bg-gray-200" />
           <div className="text-center">
-            <div className="text-lg font-extrabold text-foreground">
+            <div className="text-base font-extrabold text-foreground">
               ₹65k Cr+
             </div>
             <div className="text-xs text-muted-foreground">Disbursed</div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Sticky bottom bar */}
@@ -1967,12 +2339,12 @@ function OffersStep({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="fixed bottom-0 left-0 right-0 z-40 px-4 py-4 bg-white/95 backdrop-blur-sm"
+            className="fixed bottom-0 left-0 right-0 z-40 px-4 py-3 bg-white/95 backdrop-blur-sm"
             style={{ borderTop: "2px solid oklch(0.40 0.14 12 / 0.3)" }}
           >
-            <div className="max-w-2xl mx-auto flex items-center gap-3">
+            <div className="max-w-4xl mx-auto flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white shrink-0"
+                className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-white shrink-0"
                 style={{ backgroundColor: bestLender.logoColor }}
               >
                 {bestLender.logoInitial}
@@ -2485,21 +2857,6 @@ function ApplicationFormStep({
   );
 }
 
-// ─── EMI Calculator ───────────────────────────────────────────────────────────
-function calcEMI(
-  principal: number,
-  annualRate: number,
-  months: number,
-): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return principal / months;
-  return (principal * r * (1 + r) ** months) / ((1 + r) ** months - 1);
-}
-
-function fmtINR(n: number): string {
-  return new Intl.NumberFormat("en-IN").format(Math.round(n));
-}
-
 // ─── Thank You Step ───────────────────────────────────────────────────────────
 function ThankYouStep({
   lender,
@@ -2719,75 +3076,42 @@ function ThankYouStep({
 function AltOffersStep({
   name,
   onBack,
-  onApply,
+  onApply: _onApply,
 }: {
   name: string;
   onBack: () => void;
   onApply: (lender: AltLender) => void;
 }) {
-  const goldLoans = ALT_LENDERS.filter((l) => l.category === "gold-loan");
-  const fdCards = ALT_LENDERS.filter((l) => l.category === "fd-card");
-  const bestLender = ALT_LENDERS[0];
+  const firstName = name.split(" ")[0] || name;
 
-  const AltCard = ({ lender }: { lender: AltLender }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
-    >
-      <span className="absolute top-3 right-3 bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">
-        ✓ Secured
-      </span>
-      <div className="flex items-start gap-3 mb-4">
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0"
-          style={{ backgroundColor: lender.logoColor }}
-        >
-          {lender.logoInitial}
-        </div>
-        <div className="flex-1 min-w-0 pr-14">
-          <h3 className="font-bold text-foreground text-sm leading-tight">
-            {lender.name}
-          </h3>
-          <p className="text-muted-foreground text-xs mt-0.5 leading-snug">
-            {lender.tagline}
-          </p>
-        </div>
-      </div>
-      <div className="flex gap-3 mb-3">
-        <div className="flex-1 bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-muted-foreground">Interest Rate</p>
-          <p className="font-extrabold text-foreground text-sm">
-            {lender.interestRate}% p.a.
-          </p>
-        </div>
-        <div className="flex-1 bg-gray-50 rounded-xl p-3">
-          <span
-            className="inline-block text-xs font-bold px-2 py-1 rounded-lg text-white"
-            style={{ backgroundColor: lender.logoColor }}
-          >
-            {lender.keyBenefit}
-          </span>
-        </div>
-      </div>
-      <ApprovalBar chance={lender.approvalChance} />
-      <button
-        type="button"
-        onClick={() => onApply(lender)}
-        className="w-full mt-4 py-3 text-white font-bold rounded-xl transition-opacity hover:opacity-90 text-sm"
-        style={{ backgroundColor: lender.logoColor }}
-        data-ocid="alt-offers.apply.primary_button"
-      >
-        Apply Now →
-      </button>
-    </motion.div>
-  );
+  const rejectionReasons = [
+    {
+      icon: "🏦",
+      title: "Lender Eligibility Criteria Not Met",
+      description:
+        "Your profile does not currently match the minimum criteria set by our lending partners. This could be related to credit score, income, or employment type.",
+      color: "#f59e0b",
+    },
+    {
+      icon: "📍",
+      title: "Pincode Not Serviceable",
+      description:
+        "Unfortunately, loan services are not available in your area at this time. Our lenders are expanding coverage and may become available soon.",
+      color: "#ef4444",
+    },
+    {
+      icon: "🔄",
+      title: "Existing / Ongoing Loan with Lenders",
+      description:
+        "You may already have an active or ongoing loan with one or more of our lending partners. Lenders typically limit concurrent lending relationships.",
+      color: "#8b5cf6",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pb-24">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3.5 flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50 pb-16">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-3.5 flex items-center gap-3">
         <button
           type="button"
           onClick={onBack}
@@ -2798,114 +3122,223 @@ function AltOffersStep({
         </button>
         <div className="flex-1">
           <h1 className="font-extrabold text-foreground text-base leading-tight">
-            Secured Loan Options
+            Loan Eligibility Check
           </h1>
         </div>
-        <span className="bg-brand/10 text-brand text-xs font-bold px-2.5 py-1 rounded-full">
-          4 options matched
-        </span>
+        <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+          <Zap className="w-4 h-4 text-white fill-white" />
+        </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-5 space-y-5">
-        {/* Info Banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-          <div className="w-5 h-5 mt-0.5 flex-shrink-0 text-amber-600">
+      <div className="max-w-lg mx-auto px-4 pt-8">
+        {/* Animated icon + headline */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
+          className="flex flex-col items-center text-center mb-10"
+        >
+          <motion.div
+            animate={{
+              scale: [1, 1.08, 1, 1.04, 1],
+              rotate: [0, -4, 4, -2, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Number.POSITIVE_INFINITY,
+              repeatDelay: 1.5,
+              ease: "easeInOut",
+            }}
+            className="w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-xl"
+            style={{
+              background:
+                "linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%)",
+              boxShadow:
+                "0 0 0 8px rgba(251,191,36,0.12), 0 0 0 16px rgba(251,191,36,0.06)",
+            }}
+          >
             <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
               role="img"
-              aria-label="Info"
+              aria-label="No eligible offers"
             >
+              <circle cx="24" cy="24" r="22" fill="#fbbf24" opacity="0.2" />
               <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                clipRule="evenodd"
+                d="M24 14v12M24 32v2"
+                stroke="#92400e"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M24 6 L42 38 H6 Z"
+                stroke="#d97706"
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                fill="none"
               />
             </svg>
-          </div>
-          <div>
-            <p className="text-amber-800 text-sm font-semibold mb-1">
-              Personalised Secured Options for You
-            </p>
-            <p className="text-amber-700 text-xs leading-relaxed">
-              Based on your current credit profile, we've found secured options
-              that don't require a high credit score. These are excellent for
-              building or improving your credit while meeting your financial
-              needs.
-            </p>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Gold Loans Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
-              <span className="text-amber-700 text-base">🥇</span>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-2xl font-extrabold text-foreground leading-tight mb-3"
+          >
+            No Eligible Loan Offers
+            <br />
+            <span className="text-amber-600">Found at the Moment</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="text-muted-foreground text-sm leading-relaxed max-w-xs"
+          >
+            Hi <strong className="text-foreground">{firstName}</strong>, we
+            checked 65+ lenders but couldn&apos;t find a match for your profile
+            right now.
+          </motion.p>
+        </motion.div>
+
+        {/* Rejection reasons */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+          className="mb-8"
+        >
+          <h2 className="font-extrabold text-foreground text-base mb-4 flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+              !
+            </span>
+            Possible Reasons
+          </h2>
+          <div className="space-y-3">
+            {rejectionReasons.map((reason, i) => (
+              <motion.div
+                key={reason.title}
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  delay: 0.6 + i * 0.15,
+                  duration: 0.45,
+                  ease: "easeOut",
+                }}
+                className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex gap-4 overflow-hidden relative"
+                style={{
+                  borderLeftWidth: "4px",
+                  borderLeftColor: reason.color,
+                }}
+              >
+                <div className="text-2xl shrink-0 mt-0.5">{reason.icon}</div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm mb-1">
+                    {reason.title}
+                  </h3>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    {reason.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* What to do next */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.5 }}
+          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-8"
+        >
+          <h2 className="font-extrabold text-foreground text-sm mb-4">
+            💡 What You Can Do Next
+          </h2>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                1
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">
+                  Improve your profile
+                </strong>{" "}
+                — pay down existing debts, maintain timely repayments, and try
+                again in{" "}
+                <span className="text-brand font-semibold">30 days</span>.
+              </p>
             </div>
-            <div>
-              <h2 className="font-extrabold text-foreground text-sm">
-                Gold Loans
-              </h2>
-              <p className="text-xs text-amber-600 font-medium">
-                No credit score required
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                2
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">
+                  Contact our support team
+                </strong>{" "}
+                — our advisors can guide you on the fastest path to eligibility.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                3
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">
+                  Check your credit report
+                </strong>{" "}
+                — ensure there are no errors on your Equifax or CIBIL report.
               </p>
             </div>
           </div>
-          <div className="space-y-4">
-            {goldLoans.map((lender) => (
-              <AltCard key={lender.id} lender={lender} />
-            ))}
-          </div>
-        </div>
+        </motion.div>
 
-        {/* FD-Backed Cards Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-              <span className="text-blue-700 text-base">💳</span>
-            </div>
-            <div>
-              <h2 className="font-extrabold text-foreground text-sm">
-                FD-Backed Credit Cards
-              </h2>
-              <p className="text-xs text-blue-600 font-medium">
-                Secured against your Fixed Deposit
-              </p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            {fdCards.map((lender) => (
-              <AltCard key={lender.id} lender={lender} />
-            ))}
-          </div>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground pt-2">
-          Hi {name.split(" ")[0]}! These options are tailored to help you build
-          credit and access funds easily.
-        </p>
-      </div>
-
-      {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 shadow-lg">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground leading-none mb-0.5">
-              ⚡ Best for You
-            </p>
-            <p className="font-bold text-foreground text-sm truncate">
-              {bestLender.name} · {bestLender.approvalChance}% approval
-            </p>
-          </div>
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3, duration: 0.5 }}
+          className="flex flex-col gap-3"
+        >
           <button
             type="button"
-            onClick={() => onApply(bestLender)}
-            className="flex-shrink-0 bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
-            data-ocid="alt-offers.sticky.primary_button"
+            className="w-full py-3.5 rounded-2xl font-bold text-white text-sm transition-all hover:opacity-90 active:scale-95"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))",
+            }}
+            data-ocid="alt-offers.advisor.primary_button"
           >
-            Apply Now
+            💬 Talk to Our Advisor
           </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-full py-3.5 rounded-2xl font-semibold text-foreground text-sm border border-gray-200 bg-white hover:bg-gray-50 transition-all active:scale-95"
+            data-ocid="alt-offers.back.secondary_button"
+          >
+            ← Go Back
+          </button>
+        </motion.div>
+
+        {/* Footer */}
+        <div className="text-center mt-10 text-xs text-muted-foreground">
+          <p>
+            © {new Date().getFullYear()}. Built with ❤️ using{" "}
+            <a
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand font-semibold hover:underline"
+            >
+              caffeine.ai
+            </a>
+          </p>
         </div>
       </div>
     </div>
