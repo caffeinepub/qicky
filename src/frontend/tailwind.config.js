@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         jakarta: ["'Plus Jakarta Sans'", "sans-serif"],
+        playfair: ["'Playfair Display'", "serif"],
       },
       colors: {
         brand: {
@@ -79,11 +80,16 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
         xl: "1rem",
-        "2xl": "1.25rem",
+        "2xl": "1.5rem",
+        "3xl": "2rem",
       },
       boxShadow: {
-        card: "0 2px 16px 0 rgba(0,0,0,0.08)",
-        xs:   "0 1px 2px 0 rgba(0,0,0,0.05)",
+        card:    "0 1px 3px 0 rgba(0,0,0,0.06), 0 4px 16px 0 rgba(0,0,0,0.06)",
+        "card-hover": "0 4px 24px 0 rgba(0,0,0,0.10), 0 1px 4px 0 rgba(0,0,0,0.06)",
+        premium: "0 8px 32px 0 rgba(0,0,0,0.10), 0 1px 4px 0 rgba(0,0,0,0.06)",
+        brand:   "0 4px 24px oklch(0.38 0.14 12 / 0.28)",
+        xs:      "0 1px 2px 0 rgba(0,0,0,0.05)",
+        modal:   "0 24px 80px -8px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.04)",
       },
       keyframes: {
         "accordion-down": {
@@ -102,12 +108,17 @@ export default {
           from: { transform: "rotate(0deg)" },
           to:   { transform: "rotate(360deg)" },
         },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up":   "accordion-up 0.2s ease-out",
         "fade-up":        "fade-up 0.5s ease-out forwards",
         "spin-slow":      "spin-slow 1.2s linear infinite",
+        "shimmer":        "shimmer 2.4s linear infinite",
       },
     },
   },

@@ -265,9 +265,9 @@ function OtpInput({
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={i === 0 ? handlePaste : undefined}
-          className="w-11 h-12 text-center text-lg font-bold border-2 rounded-lg
+          className="w-12 h-14 text-center text-xl font-bold border-2 rounded-xl
             border-border focus:border-brand focus:ring-2 focus:ring-brand/20
-            outline-none transition-all bg-white text-foreground"
+            outline-none transition-all bg-white text-foreground shadow-xs"
         />
       ))}
     </div>
@@ -389,7 +389,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4"
+              className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 font-playfair"
             >
               Quick disbursals with
               <br />
@@ -399,7 +399,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-white/80 text-lg leading-relaxed max-w-md"
+              className="text-white/75 text-lg leading-relaxed max-w-md"
             >
               Get your instant personal loan in 15 minutes by following just 4
               easy steps.
@@ -456,7 +456,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
               Instant Personal Loan
             </div>
 
-            <h2 className="text-3xl font-extrabold text-foreground leading-tight mb-1">
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-foreground leading-tight mb-1 font-playfair">
               Get up to ₹15 Lakhs
             </h2>
             <p className="text-muted-foreground text-base mb-8">
@@ -490,9 +490,9 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
                     setForm((f) => ({ ...f, name: e.target.value }))
                   }
                   data-ocid="onboarding.name.input"
-                  className="w-full px-4 py-3 border border-border rounded-xl text-sm
-                    focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand
-                    transition-all bg-white placeholder:text-muted-foreground/50"
+                  className="w-full px-4 py-3.5 border border-border rounded-xl text-sm
+                    focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+                    transition-all bg-white placeholder:text-muted-foreground/40 shadow-xs"
                 />
                 {errors.name && (
                   <p
@@ -529,9 +529,9 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
                       }))
                     }
                     data-ocid="onboarding.mobile.input"
-                    className="flex-1 px-4 py-3 border border-border rounded-r-xl text-sm
-                      focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand
-                      transition-all bg-white placeholder:text-muted-foreground/50"
+                    className="flex-1 px-4 py-3.5 border border-border rounded-r-xl text-sm
+                      focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+                      transition-all bg-white placeholder:text-muted-foreground/40 shadow-xs"
                   />
                 </div>
                 {errors.mobile && (
@@ -547,8 +547,8 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
               <button
                 type="submit"
                 data-ocid="onboarding.submit_button"
-                className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl
-                  flex items-center justify-center gap-2 transition-colors text-base shadow-md hover:shadow-lg mt-2"
+                className="w-full py-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl
+                  flex items-center justify-center gap-2 transition-all text-base shadow-brand hover:shadow-lg mt-2 active:scale-[0.98]"
               >
                 Check Eligibility
                 <ArrowRight className="w-5 h-5" />
@@ -602,7 +602,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
             <div className="inline-flex items-center gap-2 bg-brand-light text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
               Calculate Your EMI
             </div>
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3 className="text-3xl font-extrabold text-foreground font-playfair">
               EMI Calculator
             </h3>
             <p className="text-muted-foreground mt-2 text-sm">
@@ -791,7 +791,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
             <div className="inline-flex items-center gap-2 bg-brand-light text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
               Why Qicky
             </div>
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3 className="text-3xl font-extrabold text-foreground font-playfair">
               Built for <span className="text-brand">speed & simplicity</span>
             </h3>
           </div>
@@ -804,8 +804,8 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.08 }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="relative flex flex-col items-center text-center p-6 rounded-2xl border border-border
-                  hover:border-brand/40 hover:shadow-lg transition-all group cursor-default"
+                className="relative flex flex-col items-center text-center p-7 rounded-2xl border border-border
+                  hover:border-brand/30 hover:shadow-card-hover transition-all duration-200 group cursor-default bg-white"
               >
                 <div className="absolute top-3 left-3 text-xs font-extrabold text-brand/30 group-hover:text-brand/60 transition-colors">
                   {String(idx + 1).padStart(2, "0")}
@@ -863,7 +863,7 @@ function LandingStep({ onNext }: { onNext: (data: FormData) => void }) {
             <div className="inline-flex items-center gap-2 bg-brand-light text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
               How It Works
             </div>
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3 className="text-3xl font-extrabold text-foreground font-playfair">
               Get your loan in{" "}
               <span className="text-brand">4 simple steps</span>
             </h3>
@@ -1100,12 +1100,12 @@ function OtpStep({
               <Star className="w-3.5 h-3.5 fill-brand text-brand" />
               Trusted by 5.7 Crore+ Indians
             </div>
-            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 font-playfair">
               Quick disbursals with
               <br />
               <span className="text-brand">minimal documentation</span>
             </h1>
-            <p className="text-white/80 text-lg leading-relaxed max-w-md">
+            <p className="text-white/75 text-lg leading-relaxed max-w-md">
               Get your instant personal loan in 15 minutes by following just 4
               easy steps.
             </p>
@@ -1154,8 +1154,8 @@ function OtpStep({
               <div className="w-14 h-14 rounded-2xl bg-brand-light flex items-center justify-center mb-6">
                 <Smartphone className="w-7 h-7 text-brand" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                OTP has been sent to your phone
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                Verify your phone
               </h2>
               <p className="text-muted-foreground text-sm mb-7 leading-relaxed">
                 Kindly enter the code sent by Qicky to{" "}
@@ -1197,8 +1197,8 @@ function OtpStep({
                 type="button"
                 onClick={handleVerify}
                 data-ocid="otp.submit_button"
-                className="w-full mt-7 py-3.5 bg-brand hover:bg-brand-dark text-white font-bold
-                rounded-xl flex items-center justify-center gap-2 transition-colors text-base shadow-md"
+                className="w-full mt-7 py-4 bg-brand hover:bg-brand-dark text-white font-bold
+                rounded-xl flex items-center justify-center gap-2 transition-all text-base shadow-brand active:scale-[0.98]"
               >
                 Verify
                 <ArrowRight className="w-5 h-5" />
@@ -1244,133 +1244,213 @@ function OtpStep({
 
       {/* PAN Details Modal */}
       {showPanModal && !showManualPan && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-5"
+          style={{
+            backgroundColor: "rgba(10,10,20,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
           data-ocid="pan.modal"
         >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md px-6 py-8">
-            <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center mb-4">
-                <ShieldCheck className="w-7 h-7 text-brand" />
-              </div>
-              <h2 className="text-xl font-extrabold text-foreground mb-2">
-                PAN Details Found
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                A PAN linked to your mobile number has been found. Please
-                confirm if this is your PAN.
-              </p>
-            </div>
-            <div className="rounded-xl border-2 border-brand/30 bg-brand/5 px-6 py-4 text-center mb-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">
-                PAN Number
-              </p>
-              <p className="text-2xl font-extrabold tracking-[0.25em] text-brand font-mono">
-                ABCDE1234F
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground text-center mb-6 leading-relaxed px-2">
-              This PAN was auto-filled to speed up the process. If this is not
-              your PAN, you may enter it manually.
-            </p>
-            <button
-              type="button"
-              data-ocid="pan.confirm_button"
-              onClick={() => {
-                setShowPanModal(false);
-                onVerify();
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            className="bg-white rounded-3xl shadow-modal w-full max-w-sm overflow-hidden"
+          >
+            {/* Top accent bar */}
+            <div
+              className="h-1.5 w-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, oklch(0.38 0.14 12), oklch(0.52 0.16 12))",
               }}
-              className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors text-base shadow-md mb-3"
-            >
-              Yes, This Is My PAN
-            </button>
-            <button
-              type="button"
-              data-ocid="pan.manual_button"
-              onClick={() => setShowManualPan(true)}
-              className="w-full py-3 border-2 border-brand text-brand font-bold rounded-xl hover:bg-brand/5 transition-colors text-base"
-            >
-              No, Enter Manually
-            </button>
-          </div>
-        </div>
+            />
+            <div className="px-7 pt-8 pb-7">
+              {/* Header */}
+              <div className="flex flex-col items-center text-center mb-7">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.38 0.14 12 / 0.1), oklch(0.38 0.14 12 / 0.05))",
+                    border: "1.5px solid oklch(0.38 0.14 12 / 0.15)",
+                  }}
+                >
+                  <ShieldCheck className="w-8 h-8 text-brand" />
+                </div>
+                <h2 className="text-2xl font-extrabold text-foreground mb-2 font-playfair">
+                  PAN Details Found
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  A PAN linked to your mobile has been found.
+                  <br />
+                  Please confirm it&apos;s yours.
+                </p>
+              </div>
+
+              {/* PAN Card Display */}
+              <div
+                className="rounded-2xl mb-5 overflow-hidden"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.38 0.14 12), oklch(0.30 0.12 12))",
+                  padding: "1.25rem 1.5rem",
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.18em]">
+                    Permanent Account Number
+                  </p>
+                  <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-white/80" />
+                  </div>
+                </div>
+                <p className="text-white text-2xl font-extrabold tracking-[0.3em] font-mono mb-1">
+                  ABCDE1234F
+                </p>
+                <p className="text-white/40 text-xs">
+                  Auto-detected · Income Tax Department
+                </p>
+              </div>
+
+              {/* Helper note */}
+              <p className="text-xs text-muted-foreground text-center mb-6 leading-relaxed">
+                Auto-filled to save you time. Not yours?{" "}
+                <span className="text-brand font-semibold">
+                  Enter manually below.
+                </span>
+              </p>
+
+              {/* CTAs */}
+              <button
+                type="button"
+                data-ocid="pan.confirm_button"
+                onClick={() => {
+                  setShowPanModal(false);
+                  onVerify();
+                }}
+                className="w-full py-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-2xl transition-all text-sm shadow-brand mb-3 active:scale-[0.98]"
+              >
+                ✓ &nbsp;Yes, This Is My PAN
+              </button>
+              <button
+                type="button"
+                data-ocid="pan.manual_button"
+                onClick={() => setShowManualPan(true)}
+                className="w-full py-3.5 border-2 border-border text-muted-foreground font-semibold rounded-2xl hover:border-brand hover:text-brand transition-all text-sm"
+              >
+                No, Enter Manually
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Manual PAN Entry Modal */}
       {showManualPan && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-5"
+          style={{
+            backgroundColor: "rgba(10,10,20,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
           data-ocid="pan.manual.modal"
         >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md px-6 py-8">
-            <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center mb-4">
-                <CreditCard className="w-7 h-7 text-brand" />
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            className="bg-white rounded-3xl shadow-modal w-full max-w-sm overflow-hidden"
+          >
+            <div
+              className="h-1.5 w-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, oklch(0.38 0.14 12), oklch(0.52 0.16 12))",
+              }}
+            />
+            <div className="px-7 pt-8 pb-7">
+              <div className="flex flex-col items-center text-center mb-7">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.38 0.14 12 / 0.1), oklch(0.38 0.14 12 / 0.05))",
+                    border: "1.5px solid oklch(0.38 0.14 12 / 0.15)",
+                  }}
+                >
+                  <CreditCard className="w-8 h-8 text-brand" />
+                </div>
+                <h2 className="text-2xl font-extrabold text-foreground mb-2 font-playfair">
+                  Enter Your PAN
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Type your 10-character PAN number to proceed
+                </p>
               </div>
-              <h2 className="text-xl font-extrabold text-foreground mb-2">
-                Enter Your PAN
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Please enter your PAN number to continue
-              </p>
-            </div>
-            <div className="mb-6">
-              <label
-                htmlFor="pan-input"
-                className="block text-sm font-semibold text-foreground mb-2"
+              <div className="mb-6">
+                <label
+                  htmlFor="pan-input"
+                  className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2"
+                >
+                  PAN Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={manualPan}
+                  onChange={(e) => {
+                    setManualPan(e.target.value.toUpperCase());
+                    setPanError("");
+                  }}
+                  placeholder="ABCDE1234F"
+                  id="pan-input"
+                  data-ocid="pan.input"
+                  className="w-full border-2 border-border focus:border-brand rounded-2xl px-5 py-4 text-xl font-mono tracking-[0.3em] outline-none transition-all text-center uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-base placeholder:text-muted-foreground/40 shadow-xs focus:shadow-brand/10 focus:ring-0"
+                />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Format: 5 letters · 4 digits · 1 letter
+                </p>
+                {panError && (
+                  <p
+                    className="text-xs text-destructive mt-2 text-center font-medium"
+                    data-ocid="pan.error_state"
+                  >
+                    {panError}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                data-ocid="pan.submit_button"
+                onClick={handleManualPanContinue}
+                className="w-full py-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-2xl transition-all text-sm shadow-brand mb-3 active:scale-[0.98]"
               >
-                PAN Number
-              </label>
-              <input
-                type="text"
-                maxLength={10}
-                value={manualPan}
-                onChange={(e) => {
-                  setManualPan(e.target.value.toUpperCase());
+                Continue →
+              </button>
+              <button
+                type="button"
+                data-ocid="pan.back.button"
+                onClick={() => {
+                  setShowManualPan(false);
+                  setManualPan("");
                   setPanError("");
                 }}
-                placeholder="e.g. ABCDE1234F"
-                id="pan-input"
-                data-ocid="pan.input"
-                className="w-full border-2 border-gray-200 focus:border-brand rounded-xl px-4 py-3 text-base font-mono tracking-widest outline-none transition-colors uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-sans"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                10-character alphanumeric (e.g. ABCDE1234F)
-              </p>
-              {panError && (
-                <p
-                  className="text-xs text-destructive mt-2"
-                  data-ocid="pan.error_state"
-                >
-                  {panError}
-                </p>
-              )}
+                className="w-full py-3 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 text-sm transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to PAN Confirmation
+              </button>
             </div>
-            <button
-              type="button"
-              data-ocid="pan.submit_button"
-              onClick={handleManualPanContinue}
-              className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors text-base shadow-md mb-3"
-            >
-              Continue
-            </button>
-            <button
-              type="button"
-              data-ocid="pan.back.button"
-              onClick={() => {
-                setShowManualPan(false);
-                setManualPan("");
-                setPanError("");
-              }}
-              className="w-full py-2.5 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 text-sm transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to PAN Confirmation
-            </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </>
   );
@@ -1707,7 +1787,7 @@ function AnalysisStep({
                   </p>
                 )}
 
-                <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                <h2 className="text-2xl font-extrabold text-foreground mb-2 font-playfair">
                   {isEligible
                     ? `Congratulations, ${firstName}! 🎉`
                     : `Hi ${firstName}, we have options for you! 🌟`}
@@ -1732,7 +1812,7 @@ function AnalysisStep({
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-border shadow-sm mb-5">
+              <div className="bg-white rounded-3xl p-7 border border-border shadow-card mb-5">
                 <div
                   className="h-1 rounded-full mb-5 -mx-6 -mt-6 rounded-t-2xl"
                   style={{
@@ -1764,8 +1844,8 @@ function AnalysisStep({
                   type="button"
                   onClick={isEligible ? onViewOffers : onViewAltOffers}
                   data-ocid="analysis.apply.primary_button"
-                  className="w-full mt-6 py-3.5 bg-brand hover:bg-brand-dark text-white font-bold
-                    rounded-xl flex items-center justify-center gap-2 transition-colors text-base shadow-md"
+                  className="w-full mt-6 py-4 bg-brand hover:bg-brand-dark text-white font-bold
+                    rounded-xl flex items-center justify-center gap-2 transition-all text-base shadow-brand active:scale-[0.98]"
                 >
                   {isEligible ? "Apply Now" : "View Secured Options"}
                   <ArrowRight className="w-5 h-5" />
@@ -1997,8 +2077,8 @@ function LenderCard({
       className="relative flex flex-col rounded-2xl bg-white overflow-hidden cursor-default"
       style={{
         boxShadow: isBest
-          ? "0 2px 16px oklch(0.40 0.14 12 / 0.12), 0 0 0 2px oklch(0.40 0.14 12 / 0.25)"
-          : "0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.06)",
+          ? "0 4px 24px oklch(0.38 0.14 12 / 0.14), 0 0 0 2px oklch(0.38 0.14 12 / 0.22)"
+          : "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07)",
       }}
     >
       {/* Best Match top bar */}
@@ -2148,7 +2228,7 @@ function LenderCard({
           type="button"
           onClick={() => onApply(lender)}
           data-ocid={`offers.item.${index + 1}.button`}
-          className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-[0.98] mt-auto"
+          className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-[0.98] mt-auto"
           style={{
             background: isBest
               ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))"
@@ -2238,9 +2318,9 @@ function OffersStep({
             <CheckCircle2 className="w-3.5 h-3.5" />5 lenders matched · Updated
             just now
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight font-playfair">
             Your Pre-Approved Offers,{" "}
-            <span style={{ color: "oklch(0.40 0.14 12)" }}>{firstName} 🎉</span>
+            <span style={{ color: "oklch(0.38 0.14 12)" }}>{firstName} 🎉</span>
           </h1>
           <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
             Compare and apply instantly — all offers reserved for you.
@@ -2255,7 +2335,7 @@ function OffersStep({
               type="button"
               onClick={() => setSort(tab.key)}
               data-ocid={`offers.${tab.key}.tab`}
-              className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+              className="shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all"
               style={
                 sort === tab.key
                   ? {
@@ -2511,7 +2591,7 @@ function ApplicationFormStep({
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mx-4 mt-4 rounded-2xl p-4 bg-green-50 border border-green-200"
+        className="mx-4 mt-4 rounded-2xl p-4 bg-emerald-50 border border-emerald-100 shadow-xs"
       >
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 bg-green-100">
@@ -2834,7 +2914,7 @@ function ApplicationFormStep({
           <button
             type="submit"
             data-ocid="apply.submit_button"
-            className="w-full py-4 rounded-xl font-extrabold text-base text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className="w-full py-4 rounded-xl font-extrabold text-base text-white transition-all hover:opacity-90 active:scale-[0.98] shadow-lg"
             style={{
               background: `linear-gradient(135deg, ${lender.logoColor}, ${lender.logoColor}99)`,
               boxShadow: `0 8px 32px ${lender.logoColor}30`,
