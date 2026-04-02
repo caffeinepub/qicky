@@ -2279,7 +2279,12 @@ function OffersStep({
     return b.approvalChance - a.approvalChance;
   });
 
-  const bestLender = LENDERS.find((l) => l.bestMatch)!;
+  const bestLender =
+    filteredLenders.find((l) => l.bestMatch) ??
+    [...filteredLenders].sort(
+      (a, b) => b.approvalChance - a.approvalChance,
+    )[0] ??
+    LENDERS.find((l) => l.bestMatch)!;
 
   const SORT_TABS: { key: SortMode; label: string }[] = [
     { key: "best", label: "Best Match" },
@@ -2484,7 +2489,7 @@ function OffersStep({
 
       {/* Sticky bottom bar */}
       <AnimatePresence>
-        {showStickyBar && (
+        {showStickyBar && filteredLenders.length > 0 && bestLender && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
