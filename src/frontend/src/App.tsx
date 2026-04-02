@@ -25,6 +25,7 @@ import {
   TrendingUp,
   User,
   Users,
+  X,
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -2046,11 +2047,19 @@ function LenderCard({
   countdown,
   index,
   onApply,
+  isCompareMode,
+  isSelected,
+  isDisabled,
+  onToggleCompare,
 }: {
   lender: Lender;
   countdown: string;
   index: number;
   onApply: (lender: Lender) => void;
+  isCompareMode?: boolean;
+  isSelected?: boolean;
+  isDisabled?: boolean;
+  onToggleCompare?: (id: string) => void;
 }) {
   const isBest = lender.bestMatch;
 
@@ -2075,13 +2084,59 @@ function LenderCard({
       transition={{ duration: 0.4, delay: index * 0.08 }}
       data-ocid={`offers.item.${index + 1}`}
       whileHover={{ y: -3, transition: { duration: 0.18 } }}
-      className="relative flex flex-col rounded-2xl bg-white overflow-hidden cursor-default"
+      className={`relative flex flex-col rounded-2xl bg-white overflow-hidden cursor-default transition-opacity ${isDisabled ? "opacity-50 pointer-events-none" : ""}`}
       style={{
-        boxShadow: isBest
-          ? "0 4px 24px oklch(0.38 0.14 12 / 0.14), 0 0 0 2px oklch(0.38 0.14 12 / 0.22)"
-          : "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07)",
+        boxShadow: isSelected
+          ? "0 4px 24px oklch(0.38 0.14 12 / 0.22), 0 0 0 2.5px oklch(0.40 0.14 12)"
+          : isBest
+            ? "0 4px 24px oklch(0.38 0.14 12 / 0.14), 0 0 0 2px oklch(0.38 0.14 12 / 0.22)"
+            : "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07)",
       }}
     >
+      {/* Compare checkbox overlay */}
+      {isCompareMode && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare?.(lender.id);
+          }}
+          className="absolute top-3 right-3 z-10 transition-transform hover:scale-110"
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            border: isSelected ? "none" : "2px solid #e5e7eb",
+            background: isSelected ? "oklch(0.40 0.14 12)" : "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: isSelected
+              ? "0 2px 8px oklch(0.40 0.14 12 / 0.35)"
+              : "0 1px 4px rgba(0,0,0,0.1)",
+          }}
+        >
+          {isSelected && (
+            <svg
+              width="11"
+              height="9"
+              viewBox="0 0 11 9"
+              fill="none"
+              aria-label="Selected"
+              role="img"
+            >
+              <title>Selected</title>
+              <path
+                d="M1 4.5L4 7.5L10 1"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
+      )}
       {/* Best Match top bar */}
       {isBest && (
         <div
@@ -2243,6 +2298,245 @@ function LenderCard({
   );
 }
 
+// ─── Compare Drawer ──────────────────────────────────────────────────────────
+function CompareDrawer({
+  lenders,
+  onClose,
+  onApply,
+}: {
+  lenders: Lender[];
+  onClose: () => void;
+  onApply: (lender: Lender) => void;
+}) {
+  // Determine best values per row
+  const bestRate = Math.min(...lenders.map((l) => l.interestRate));
+  const bestAmount = Math.max(...lenders.map((l) => l.maxAmountNum));
+  const bestApproval = Math.max(...lenders.map((l) => l.approvalChance));
+
+  const rows = [
+    {
+      label: "Interest Rate (p.a.)",
+      getValue: (l: Lender) => `${l.interestRate}%`,
+      isBest: (l: Lender) => l.interestRate === bestRate,
+    },
+    {
+      label: "Max Loan Amount",
+      getValue: (l: Lender) => `₹${l.maxAmount}`,
+      isBest: (l: Lender) => l.maxAmountNum === bestAmount,
+    },
+    { label: "Tenure", getValue: (l: Lender) => l.tenure, isBest: () => false },
+    {
+      label: "Processing Fee",
+      getValue: (l: Lender) => l.processingFee,
+      isBest: () => false,
+    },
+    {
+      label: "Approval Chance",
+      getValue: (l: Lender) => `${l.approvalChance}%`,
+      isBest: (l: Lender) => l.approvalChance === bestApproval,
+    },
+  ];
+
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: `120px repeat(${lenders.length}, 1fr)`,
+  } as React.CSSProperties;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/40 z-40"
+        onClick={onClose}
+      />
+      {/* Drawer */}
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 280, damping: 30 }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl overflow-hidden"
+        style={{ maxHeight: "78vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.18)" }}
+        data-ocid="offers.compare.modal"
+      >
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 pb-3 pt-1 flex items-center justify-between border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-extrabold text-gray-900">
+              Compare Offers
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {lenders.length} offers selected • Green = best value
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            data-ocid="offers.compare.close_button"
+            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div
+          className="overflow-y-auto"
+          style={{ maxHeight: "calc(78vh - 100px)" }}
+        >
+          <div className="px-4 py-4">
+            {/* Lender headers */}
+            <div style={gridStyle} className="mb-4">
+              <div className="flex items-end pb-2">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  Metric
+                </span>
+              </div>
+              {lenders.map((lender) => (
+                <div
+                  key={lender.id}
+                  className="flex flex-col items-center gap-1.5 pb-2"
+                >
+                  <div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-extrabold text-sm shadow-sm"
+                    style={{ backgroundColor: lender.logoColor }}
+                  >
+                    {lender.logoInitial}
+                  </div>
+                  <span className="text-[11px] font-bold text-gray-800 text-center leading-tight px-1">
+                    {lender.name}
+                  </span>
+                  {lender.bestMatch && (
+                    <span
+                      className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))",
+                      }}
+                    >
+                      BEST
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-gray-100 mb-3" />
+
+            {/* Comparison rows */}
+            <div className="space-y-1">
+              {rows.map((row, ri) => (
+                <div
+                  key={row.label}
+                  style={gridStyle}
+                  className="rounded-xl overflow-hidden"
+                >
+                  <div className="flex items-center py-3 px-2 bg-gray-50">
+                    <span className="text-[11px] font-semibold text-gray-500 leading-tight">
+                      {row.label}
+                    </span>
+                  </div>
+                  {lenders.map((lender) => {
+                    const best = row.isBest(lender);
+                    return (
+                      <div
+                        key={lender.id}
+                        className="flex flex-col items-center justify-center py-3 px-2"
+                        style={{
+                          background: best ? "oklch(0.96 0.04 145)" : "white",
+                          borderLeft: "1px solid #f3f4f6",
+                        }}
+                      >
+                        {/* For approval chance, show animated bar */}
+                        {row.label === "Approval Chance" ? (
+                          <div className="w-full px-1">
+                            <div
+                              className="text-center text-xs font-extrabold mb-1"
+                              style={{
+                                color: best
+                                  ? "oklch(0.45 0.14 145)"
+                                  : "#374151",
+                              }}
+                            >
+                              {row.getValue(lender)}
+                            </div>
+                            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${lender.approvalChance}%` }}
+                                transition={{ duration: 0.7, delay: ri * 0.05 }}
+                                className="h-full rounded-full"
+                                style={{
+                                  background: best
+                                    ? "oklch(0.55 0.14 145)"
+                                    : lender.logoColor,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <span
+                            className="text-xs font-extrabold text-center"
+                            style={{
+                              color: best ? "oklch(0.45 0.14 145)" : "#374151",
+                            }}
+                          >
+                            {best && <span className="mr-0.5">★</span>}
+                            {row.getValue(lender)}
+                          </span>
+                        )}
+                        {best && (
+                          <span
+                            className="text-[9px] font-bold mt-0.5"
+                            style={{ color: "oklch(0.45 0.14 145)" }}
+                          >
+                            Best
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {/* Apply buttons per lender */}
+            <div style={gridStyle} className="mt-5 gap-2">
+              <div />
+              {lenders.map((lender) => (
+                <div key={lender.id} className="px-1">
+                  <button
+                    type="button"
+                    onClick={() => onApply(lender)}
+                    data-ocid={`offers.compare.${lender.id}.primary_button`}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs text-white transition-all hover:opacity-90 active:scale-95"
+                    style={{
+                      background: lender.bestMatch
+                        ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))"
+                        : `linear-gradient(135deg, ${lender.logoColor}ee, ${lender.logoColor}bb)`,
+                    }}
+                  >
+                    Apply Now
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
 // ─── Offers Step ──────────────────────────────────────────────────────────────
 type SortMode = "best" | "rate" | "amount";
 
@@ -2260,6 +2554,18 @@ function OffersStep({
     "all",
   );
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
+
+  const toggleCompareSelect = (id: string) => {
+    setSelectedForCompare((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length < 3
+          ? [...prev, id]
+          : prev,
+    );
+  };
   const countdown = useCountdown(86399);
   const firstName = name.split(" ")[0] || name;
 
@@ -2326,11 +2632,45 @@ function OffersStep({
             Qicky
           </span>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-muted-foreground font-medium">
-            Live offers
-          </span>
+        <div className="ml-auto flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-xs text-muted-foreground font-medium">
+              Live offers
+            </span>
+          </div>
+          <button
+            type="button"
+            data-ocid="offers.compare.toggle"
+            onClick={() => {
+              setCompareMode((m) => !m);
+              if (compareMode) setSelectedForCompare([]);
+            }}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+            style={
+              compareMode
+                ? {
+                    background: "oklch(0.40 0.14 12)",
+                    color: "white",
+                    boxShadow: "0 2px 8px oklch(0.40 0.14 12 / 0.3)",
+                  }
+                : {
+                    background: "white",
+                    color: "#6b7280",
+                    border: "1px solid #e5e7eb",
+                  }
+            }
+          >
+            {compareMode && selectedForCompare.length > 0 && (
+              <span
+                className="w-4 h-4 rounded-full bg-white text-[10px] font-extrabold flex items-center justify-center"
+                style={{ color: "oklch(0.40 0.14 12)" }}
+              >
+                {selectedForCompare.length}
+              </span>
+            )}
+            Compare
+          </button>
         </div>
       </div>
 
@@ -2456,6 +2796,14 @@ function OffersStep({
                 countdown={countdown}
                 index={i}
                 onApply={onApply}
+                isCompareMode={compareMode}
+                isSelected={selectedForCompare.includes(lender.id)}
+                isDisabled={
+                  compareMode &&
+                  selectedForCompare.length >= 3 &&
+                  !selectedForCompare.includes(lender.id)
+                }
+                onToggleCompare={toggleCompareSelect}
               />
             ))}
           </motion.div>
@@ -2486,6 +2834,24 @@ function OffersStep({
           </div>
         </motion.div>
       </div>
+
+      {/* Compare Drawer */}
+      <AnimatePresence>
+        {compareMode && selectedForCompare.length >= 2 && (
+          <CompareDrawer
+            lenders={LENDERS.filter((l) => selectedForCompare.includes(l.id))}
+            onClose={() => {
+              setCompareMode(false);
+              setSelectedForCompare([]);
+            }}
+            onApply={(lender) => {
+              setCompareMode(false);
+              setSelectedForCompare([]);
+              onApply(lender);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sticky bottom bar */}
       <AnimatePresence>
@@ -2558,12 +2924,14 @@ function SectionCard({
   accentColor,
   children,
   delay,
+  gridCols,
 }: {
   icon: React.ElementType;
   title: string;
   accentColor: string;
   children: React.ReactNode;
   delay: number;
+  gridCols?: 1 | 2;
 }) {
   return (
     <motion.div
@@ -2571,25 +2939,36 @@ function SectionCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      style={{ borderLeft: `3px solid ${accentColor}` }}
     >
       <div
         className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2"
-        style={{ background: `${accentColor}08` }}
+        style={{
+          background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}05)`,
+        }}
       >
         <div
-          className="w-6 h-6 rounded-md flex items-center justify-center"
-          style={{ backgroundColor: `${accentColor}18` }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm"
+          style={{ backgroundColor: `${accentColor}20` }}
         >
-          <Icon className="w-3.5 h-3.5" style={{ color: accentColor }} />
+          <Icon className="w-4 h-4" style={{ color: accentColor }} />
         </div>
         <span
-          className="text-[11px] font-bold uppercase tracking-widest"
+          className="text-[11px] font-extrabold uppercase tracking-widest"
           style={{ color: accentColor }}
         >
           {title}
         </span>
       </div>
-      <div className="px-5 py-4 space-y-4">{children}</div>
+      <div
+        className={
+          gridCols === 2
+            ? "px-5 py-4 grid grid-cols-2 gap-x-4 gap-y-4"
+            : "px-5 py-4 space-y-4"
+        }
+      >
+        {children}
+      </div>
     </motion.div>
   );
 }
@@ -2600,20 +2979,25 @@ function SlimField({
   bureauVerified,
   children,
   delay,
+  colSpan,
 }: {
   label: string;
   bureauVerified?: boolean;
   children: React.ReactNode;
   delay: number;
+  colSpan?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay }}
+      className={colSpan ? "col-span-2" : ""}
     >
-      <div className="flex items-center mb-1.5 gap-1">
-        <span className="text-[12px] font-semibold text-gray-500">{label}</span>
+      <div className="flex items-center mb-1.5 gap-1.5">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+          {label}
+        </span>
         {bureauVerified && <BureauBadge />}
       </div>
       {children}
@@ -2639,7 +3023,7 @@ function ApplicationFormStep({
     background: "white",
     border: "1px solid #E5E7EB",
     color: "#1a1a1a",
-    borderRadius: "10px",
+    borderRadius: "12px",
     padding: "0 14px",
     width: "100%",
     height: "48px",
@@ -2733,6 +3117,7 @@ function ApplicationFormStep({
             title="Personal Details"
             accentColor={accentColor}
             delay={0.05}
+            gridCols={2}
           >
             <SlimField label="Full Name" bureauVerified delay={0.1}>
               <input
@@ -2783,7 +3168,7 @@ function ApplicationFormStep({
               </div>
             </SlimField>
 
-            <SlimField label="Email Address" delay={0.18}>
+            <SlimField label="Email Address" delay={0.18} colSpan>
               <input
                 type="email"
                 defaultValue="rahul.sharma@gmail.com"
@@ -2801,9 +3186,15 @@ function ApplicationFormStep({
             title="Financial Details"
             accentColor={accentColor}
             delay={0.2}
+            gridCols={2}
           >
             {/* Monthly Income — highlighted */}
-            <SlimField label="Monthly Net Income" bureauVerified delay={0.22}>
+            <SlimField
+              label="Monthly Net Income"
+              bureauVerified
+              delay={0.22}
+              colSpan
+            >
               <div
                 className="relative rounded-[10px] overflow-hidden"
                 style={{
@@ -2887,6 +3278,7 @@ function ApplicationFormStep({
             title="Loan Details"
             accentColor={accentColor}
             delay={0.32}
+            gridCols={2}
           >
             <SlimField label="Loan Amount Required" delay={0.34}>
               <input

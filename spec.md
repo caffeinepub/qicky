@@ -1,45 +1,37 @@
-# Qicky — Application Form + Thank You Page
+# Qicky
 
 ## Current State
-The app has 4 steps: landing → OTP → analysis → offers. The Offers page shows 5 lenders (Poonawala, ABCL, Hero Fincorp, Unity SFB, SMFG) with "Apply Now" buttons on each card. Currently tapping "Apply Now" does nothing.
+- Offers page shows a 2-column grid of LenderCard components with category filter chips and sort tabs
+- LenderCard has no compare/select toggle
+- OffersStep has no compare mode or side-by-side comparison view
+- Apply form (ApplyStep) uses SlimField/SectionCard components with sequential stacked layout
+- Personal information section lists ~5 fields vertically per card — feels lengthy
 
 ## Requested Changes (Diff)
 
 ### Add
-- `apply` step: Pre-filled loan application form with Equifax credit bureau banner, showing all fields auto-populated from bureau data (name, DOB, PAN, mobile, email, monthly income, employment type, employer name, city, loan amount, loan purpose). Ultra-modern dark UI matching existing #0A0A0F theme.
-- `thankyou` step: Confirmation page per lender with their UTM link, asking customer to continue the journey on lender's platform.
-- `selectedLender` state to track which lender was selected.
-- Equifax trust banner at top of form with shield icon, bureau seal design.
-- Each lender has a unique UTM link in the data model.
+- Compare toggle button on the offers page header area ("Compare Offers" mode toggle)
+- Checkbox/selector on each LenderCard when compare mode is active
+- Constraint: max 3 offers selectable; if 3 already selected, disable unselected cards
+- Compare panel: floating bottom drawer or modal showing 2-3 selected offers side by side with key metrics (rate, max amount, tenure, processing fee, approval chance)
+- "Compare" CTA button that appears when 2+ offers selected (replaces sticky bar or shows above it)
+- Personal details section in ApplyStep: 2-column grid layout for fields (Full Name + DOB on row 1, PAN + Mobile on row 2, Email spanning full width)
+- Financial details: grid layout (Income + Employment on row 1, Employer + Experience on row 2)
+- Loan details: 2-column grid
 
 ### Modify
-- `Step` type: add `"apply" | "thankyou"` variants.
-- `Lender` interface: add `utmLink: string` field.
-- `LENDERS` data: add UTM links per lender.
-- `LenderCard` component: "Apply Now" button now calls `onApply(lender)` callback.
-- `OffersStep`: accept `onApply` prop, pass it to LenderCard. Also sticky bar "Apply Now" should also call `onApply` with the best lender.
-- `App` root: add `selectedLender` state, `handleApply`, `handleSubmitForm`, `handleBackToOffers` handlers, render `apply` and `thankyou` steps.
+- LenderCard: add optional `isCompareMode`, `isSelected`, `onToggleCompare` props
+- OffersStep: add `compareMode` state, `selectedForCompare` array state
+- SectionCard content: use grid layout for form fields instead of stacked SlimField
+- SlimField: support full-width override for spanning both columns
 
 ### Remove
-- Nothing removed.
+- Nothing removed
 
 ## Implementation Plan
-1. Add `utmLink` to `Lender` interface and LENDERS data.
-2. Update `Step` type.
-3. Add `selectedLender` state in App root.
-4. Update `LenderCard` to accept and call `onApply(lender: Lender)` on Apply Now button.
-5. Update `OffersStep` to accept `onApply` prop and pass it down.
-6. Build `ApplicationFormStep` component:
-   - Sticky header with Qicky logo + lender name + back button
-   - Equifax credit bureau banner (green shield, "Bureau data pulled" message)
-   - All fields pre-filled: Full Name, Date of Birth, PAN Number, Mobile, Email, Monthly Net Income, Employment Type, Employer Name, City, Loan Amount Required, Loan Purpose
-   - Editable fields (user can modify if needed)
-   - "Fields are auto-filled from your Equifax credit report" sub-note
-   - Submit CTA: "Submit Application →" in lender brand color
-7. Build `ThankYouStep` component:
-   - Success animation (checkmark)
-   - Lender branding (logo color, name)
-   - "Your application has been submitted" message
-   - Prominent CTA: "Continue on [Lender] →" linking to UTM URL
-   - Trust indicators
-   - "Back to Offers" link
+1. Add compare mode state and selectedForCompare[] to OffersStep
+2. Add a "Compare" toggle button to the offers header row
+3. Extend LenderCard props to support compare checkbox overlay
+4. Build CompareDrawer component: slides up from bottom, shows selected offers in columns with row-by-row metric comparison
+5. Refactor personal info section (ApplyStep) to use CSS grid 2-column layout
+6. Refactor financial and loan details sections similarly
