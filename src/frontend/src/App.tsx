@@ -5,6 +5,7 @@ import {
   Briefcase,
   Building,
   Calendar,
+  CheckCircle,
   CheckCircle2,
   ChevronLeft,
   Clock,
@@ -2255,6 +2256,9 @@ function OffersStep({
   onApply: (lender: Lender) => void;
 }) {
   const [sort, setSort] = useState<SortMode>("best");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "nbfc" | "sfb">(
+    "all",
+  );
   const [showStickyBar, setShowStickyBar] = useState(false);
   const countdown = useCountdown(86399);
   const firstName = name.split(" ")[0] || name;
@@ -2264,7 +2268,12 @@ function OffersStep({
     return () => clearTimeout(timer);
   }, []);
 
-  const sortedLenders = [...LENDERS].sort((a, b) => {
+  const filteredLenders =
+    categoryFilter === "all"
+      ? LENDERS
+      : LENDERS.filter((l) => l.category === categoryFilter);
+
+  const sortedLenders = [...filteredLenders].sort((a, b) => {
     if (sort === "rate") return a.interestRate - b.interestRate;
     if (sort === "amount") return b.maxAmountNum - a.maxAmountNum;
     return b.approvalChance - a.approvalChance;
@@ -2276,6 +2285,20 @@ function OffersStep({
     { key: "best", label: "Best Match" },
     { key: "rate", label: "Lowest Rate" },
     { key: "amount", label: "Highest Amount" },
+  ];
+
+  const CATEGORY_TABS = [
+    { key: "all" as const, label: "All", count: LENDERS.length },
+    {
+      key: "nbfc" as const,
+      label: "NBFC",
+      count: LENDERS.filter((l) => l.category === "nbfc").length,
+    },
+    {
+      key: "sfb" as const,
+      label: "Small Finance Bank",
+      count: LENDERS.filter((l) => l.category === "sfb").length,
+    },
   ];
 
   return (
@@ -2327,6 +2350,44 @@ function OffersStep({
           </p>
         </motion.div>
 
+        {/* Category filter chips */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+          {CATEGORY_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setCategoryFilter(tab.key)}
+              data-ocid={`offers.category.${tab.key}.tab`}
+              className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+              style={
+                categoryFilter === tab.key
+                  ? {
+                      background: "oklch(0.40 0.14 12)",
+                      color: "white",
+                      boxShadow: "0 2px 10px oklch(0.40 0.14 12 / 0.32)",
+                    }
+                  : {
+                      background: "white",
+                      color: "#6b7280",
+                      border: "1px solid #e5e7eb",
+                    }
+              }
+            >
+              {tab.label}{" "}
+              <span
+                className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-bold"
+                style={
+                  categoryFilter === tab.key
+                    ? { background: "rgba(255,255,255,0.22)", color: "white" }
+                    : { background: "#f3f4f6", color: "#6b7280" }
+                }
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* Sort tabs — pill style */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
           {SORT_TABS.map((tab) => (
@@ -2356,22 +2417,44 @@ function OffersStep({
         </div>
 
         {/* Offer cards grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
-        >
-          {sortedLenders.map((lender, i) => (
-            <LenderCard
-              key={lender.id}
-              lender={lender}
-              countdown={countdown}
-              index={i}
-              onApply={onApply}
-            />
-          ))}
-        </motion.div>
+        {sortedLenders.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center justify-center py-16 mb-6 bg-white rounded-2xl border border-gray-100"
+          >
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+              style={{ background: "oklch(0.40 0.14 12 / 0.08)" }}
+            >
+              <span className="text-2xl">🔍</span>
+            </div>
+            <p className="text-sm font-semibold text-foreground mb-1">
+              No lenders in this category
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Try selecting a different filter above
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
+          >
+            {sortedLenders.map((lender, i) => (
+              <LenderCard
+                key={lender.id}
+                lender={lender}
+                countdown={countdown}
+                index={i}
+                onApply={onApply}
+              />
+            ))}
+          </motion.div>
+        )}
 
         {/* Trust strip */}
         <motion.div
@@ -2456,39 +2539,77 @@ function OffersStep({
 // ─── Bureau Verified Badge ────────────────────────────────────────────────────
 function BureauBadge() {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ml-2 shrink-0 bg-green-50 text-green-700 border border-green-200">
-      <Shield className="w-2.5 h-2.5" />
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ml-2 shrink-0 bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <CheckCircle className="w-2.5 h-2.5" />
       Bureau Verified
     </span>
   );
 }
 
-// ─── Form Field ───────────────────────────────────────────────────────────────
-function FormField({
-  label,
+// ─── Section Card ─────────────────────────────────────────────────────────────
+function SectionCard({
   icon: Icon,
-  children,
+  title,
   accentColor,
+  children,
   delay,
 }: {
-  label: string;
   icon: React.ElementType;
-  children: React.ReactNode;
+  title: string;
   accentColor: string;
+  children: React.ReactNode;
   delay: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.35, delay }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+      className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
     >
-      <div className="flex items-center mb-1.5">
-        <Icon className="w-3.5 h-3.5 mr-1.5" style={{ color: accentColor }} />
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          {label}
+      <div
+        className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2"
+        style={{ background: `${accentColor}08` }}
+      >
+        <div
+          className="w-6 h-6 rounded-md flex items-center justify-center"
+          style={{ backgroundColor: `${accentColor}18` }}
+        >
+          <Icon className="w-3.5 h-3.5" style={{ color: accentColor }} />
+        </div>
+        <span
+          className="text-[11px] font-bold uppercase tracking-widest"
+          style={{ color: accentColor }}
+        >
+          {title}
         </span>
-        <BureauBadge />
+      </div>
+      <div className="px-5 py-4 space-y-4">{children}</div>
+    </motion.div>
+  );
+}
+
+// ─── Slim Form Field ──────────────────────────────────────────────────────────
+function SlimField({
+  label,
+  bureauVerified,
+  children,
+  delay,
+}: {
+  label: string;
+  bureauVerified?: boolean;
+  children: React.ReactNode;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay }}
+    >
+      <div className="flex items-center mb-1.5 gap-1">
+        <span className="text-[12px] font-semibold text-gray-500">{label}</span>
+        {bureauVerified && <BureauBadge />}
       </div>
       {children}
     </motion.div>
@@ -2511,19 +2632,21 @@ function ApplicationFormStep({
 }) {
   const inputBase = {
     background: "white",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #E5E7EB",
     color: "#1a1a1a",
-    borderRadius: "12px",
-    padding: "12px 16px",
+    borderRadius: "10px",
+    padding: "0 14px",
     width: "100%",
-    fontSize: "14px",
+    height: "48px",
+    fontSize: "15px",
     outline: "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
+    appearance: "none" as const,
   } as React.CSSProperties;
 
   const focusStyle = {
-    border: `1px solid ${lender.logoColor}88`,
-    boxShadow: `0 0 0 3px ${lender.logoColor}22`,
+    border: `1.5px solid ${lender.logoColor}`,
+    boxShadow: `0 0 0 3px ${lender.logoColor}20`,
   };
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -2533,21 +2656,6 @@ function ApplicationFormStep({
     ...(focusedField === field ? focusStyle : {}),
   });
 
-  const SECTION_HEADER_STYLE = {
-    color: "oklch(0.40 0.14 12)",
-    fontSize: "10px",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase" as const,
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    marginBottom: "16px",
-    marginTop: "8px",
-    paddingBottom: "10px",
-    borderBottom: "1px solid #e5e7eb",
-  };
-
   const accentColor = lender.logoColor;
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -2556,16 +2664,16 @@ function ApplicationFormStep({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]" data-ocid="apply.panel">
+    <div className="min-h-screen bg-gray-50" data-ocid="apply.panel">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 px-4 py-3.5 flex items-center gap-3 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <div className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <button
           type="button"
           onClick={onBack}
           data-ocid="apply.back.button"
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-200"
+          className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-200"
         >
-          <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+          <ChevronLeft className="w-4 h-4 text-gray-500" />
         </button>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
@@ -2580,61 +2688,48 @@ function ApplicationFormStep({
           >
             {lender.logoInitial}
           </div>
-          <span className="text-muted-foreground text-xs font-medium hidden sm:block">
+          <span className="text-gray-500 text-xs font-medium hidden sm:block">
             {lender.name}
           </span>
         </div>
       </div>
 
-      {/* Equifax Bureau Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mx-4 mt-4 rounded-2xl p-4 bg-emerald-50 border border-emerald-100 shadow-xs"
-      >
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 bg-green-100">
-            <Shield className="w-5 h-5 text-green-600" />
+      <div className="max-w-[540px] mx-auto px-4 pt-5 pb-12">
+        {/* Equifax Bureau Banner — compact */}
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="rounded-xl p-3.5 bg-emerald-50 border border-emerald-200 flex items-center gap-3 mb-5"
+        >
+          <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+            <Shield className="w-4.5 h-4.5 text-emerald-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <p className="font-extrabold text-sm text-green-700">
-                Equifax Credit Bureau Report Fetched
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-xs font-bold text-emerald-800 leading-snug">
+                Pre-filled from your Equifax Credit Report
               </p>
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-green-100 text-green-700 shrink-0">
+              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 shrink-0">
                 EQUIFAX
               </span>
             </div>
-            <p className="text-xs mt-1 leading-relaxed text-green-600">
-              We've pre-filled your application using your Equifax credit report
-              to make your journey seamless.
-            </p>
-            <p className="text-xs mt-2 font-medium text-muted-foreground">
-              ✎ All fields are editable. Please review before submitting.
+            <p className="text-[11px] mt-0.5 text-emerald-700">
+              All fields are editable — please review before submitting.
             </p>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Form */}
-      <form
-        onSubmit={handleFormSubmit}
-        className="max-w-2xl mx-auto px-4 pb-10"
-      >
-        {/* Personal Details */}
-        <div className="mt-6">
-          <div style={SECTION_HEADER_STYLE}>
-            <User className="w-3.5 h-3.5" style={{ color: accentColor }} />
-            Personal Details
-          </div>
-          <div className="space-y-4">
-            <FormField
-              label="Full Name"
-              icon={User}
-              accentColor={accentColor}
-              delay={0.05}
-            >
+        {/* Form */}
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          {/* Personal Details Card */}
+          <SectionCard
+            icon={User}
+            title="Personal Details"
+            accentColor={accentColor}
+            delay={0.05}
+          >
+            <SlimField label="Full Name" bureauVerified delay={0.1}>
               <input
                 type="text"
                 defaultValue={name || "Rahul Sharma"}
@@ -2643,13 +2738,9 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("name")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="Date of Birth"
-              icon={Calendar}
-              accentColor={accentColor}
-              delay={0.1}
-            >
+            </SlimField>
+
+            <SlimField label="Date of Birth" bureauVerified delay={0.12}>
               <input
                 type="text"
                 defaultValue="15/03/1990"
@@ -2658,13 +2749,9 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("dob")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="PAN Number"
-              icon={CreditCard}
-              accentColor={accentColor}
-              delay={0.15}
-            >
+            </SlimField>
+
+            <SlimField label="PAN Number" bureauVerified delay={0.14}>
               <input
                 type="text"
                 defaultValue="ABCDE1234F"
@@ -2673,33 +2760,25 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("pan")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="Mobile Number"
-              icon={Smartphone}
-              accentColor={accentColor}
-              delay={0.2}
-            >
+            </SlimField>
+
+            <SlimField label="Mobile Number" bureauVerified delay={0.16}>
               <div className="flex gap-2">
-                <span className="inline-flex items-center px-3 rounded-xl text-sm font-medium shrink-0 bg-gray-100 border border-gray-200 text-muted-foreground">
+                <span className="inline-flex items-center px-3 h-12 rounded-[10px] text-sm font-medium shrink-0 bg-gray-50 border border-gray-200 text-gray-500">
                   +91
                 </span>
                 <input
                   type="tel"
                   defaultValue={mobile || "9876543210"}
                   data-ocid="apply.mobile.input"
-                  style={getInputStyle("mobile")}
+                  style={{ ...getInputStyle("mobile"), width: "auto", flex: 1 }}
                   onFocus={() => setFocusedField("mobile")}
                   onBlur={() => setFocusedField(null)}
                 />
               </div>
-            </FormField>
-            <FormField
-              label="Email Address"
-              icon={Mail}
-              accentColor={accentColor}
-              delay={0.25}
-            >
+            </SlimField>
+
+            <SlimField label="Email Address" delay={0.18}>
               <input
                 type="email"
                 defaultValue="rahul.sharma@gmail.com"
@@ -2708,45 +2787,27 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-          </div>
-        </div>
+            </SlimField>
+          </SectionCard>
 
-        {/* Financial Details */}
-        <div className="mt-8">
-          <div style={SECTION_HEADER_STYLE}>
-            <IndianRupee
-              className="w-3.5 h-3.5"
-              style={{ color: accentColor }}
-            />
-            Financial Details
-          </div>
-          <div className="space-y-4">
-            {/* Monthly Income */}
-            <motion.div
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.35, delay: 0.3 }}
-            >
-              <div className="flex items-center mb-1.5">
-                <IndianRupee
-                  className="w-3.5 h-3.5 mr-1.5"
-                  style={{ color: accentColor }}
-                />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Monthly Net Income
-                </span>
-                <BureauBadge />
-              </div>
+          {/* Financial Details Card */}
+          <SectionCard
+            icon={IndianRupee}
+            title="Financial Details"
+            accentColor={accentColor}
+            delay={0.2}
+          >
+            {/* Monthly Income — highlighted */}
+            <SlimField label="Monthly Net Income" bureauVerified delay={0.22}>
               <div
-                className="relative rounded-xl overflow-hidden"
+                className="relative rounded-[10px] overflow-hidden"
                 style={{
-                  border: `1.5px solid ${lender.logoColor}60`,
-                  boxShadow: `0 0 16px ${lender.logoColor}15`,
+                  border: `1.5px solid ${lender.logoColor}55`,
+                  boxShadow: `0 0 12px ${lender.logoColor}12`,
                 }}
               >
                 <span
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold"
                   style={{ color: accentColor }}
                 >
                   ₹
@@ -2757,11 +2818,12 @@ function ApplicationFormStep({
                   data-ocid="apply.income.input"
                   style={{
                     ...inputBase,
-                    paddingLeft: "32px",
+                    paddingLeft: "28px",
                     fontWeight: 700,
                     fontSize: "16px",
                     border: "none",
                     boxShadow: "none",
+                    height: "48px",
                     borderRadius: "10px",
                   }}
                   onFocus={() => setFocusedField("income")}
@@ -2769,19 +2831,15 @@ function ApplicationFormStep({
                 />
               </div>
               <p
-                className="text-xs mt-1.5 font-medium"
+                className="text-[11px] mt-1.5 font-medium flex items-center gap-1"
                 style={{ color: accentColor }}
               >
-                ✓ Income verified via Equifax credit pull
+                <CheckCircle className="w-3 h-3" />
+                Income verified via Equifax credit pull
               </p>
-            </motion.div>
+            </SlimField>
 
-            <FormField
-              label="Employment Type"
-              icon={Briefcase}
-              accentColor={accentColor}
-              delay={0.35}
-            >
+            <SlimField label="Employment Type" delay={0.26}>
               <select
                 data-ocid="apply.employment.select"
                 defaultValue="Salaried"
@@ -2793,13 +2851,9 @@ function ApplicationFormStep({
                 <option value="Self-Employed">Self-Employed</option>
                 <option value="Business">Business</option>
               </select>
-            </FormField>
-            <FormField
-              label="Employer Name"
-              icon={Building}
-              accentColor={accentColor}
-              delay={0.4}
-            >
+            </SlimField>
+
+            <SlimField label="Employer Name" delay={0.28}>
               <input
                 type="text"
                 defaultValue="Infosys Limited"
@@ -2808,13 +2862,9 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("employer")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="Work Experience"
-              icon={Clock}
-              accentColor={accentColor}
-              delay={0.45}
-            >
+            </SlimField>
+
+            <SlimField label="Work Experience" delay={0.3}>
               <input
                 type="text"
                 defaultValue="5 Years"
@@ -2823,23 +2873,17 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("experience")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-          </div>
-        </div>
+            </SlimField>
+          </SectionCard>
 
-        {/* Loan Details */}
-        <div className="mt-8">
-          <div style={SECTION_HEADER_STYLE}>
-            <FileText className="w-3.5 h-3.5" style={{ color: accentColor }} />
-            Loan Details
-          </div>
-          <div className="space-y-4">
-            <FormField
-              label="Loan Amount Required"
-              icon={IndianRupee}
-              accentColor={accentColor}
-              delay={0.5}
-            >
+          {/* Loan Details Card */}
+          <SectionCard
+            icon={FileText}
+            title="Loan Details"
+            accentColor={accentColor}
+            delay={0.32}
+          >
+            <SlimField label="Loan Amount Required" delay={0.34}>
               <input
                 type="text"
                 defaultValue="₹5,00,000"
@@ -2848,13 +2892,9 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("loanAmount")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="Loan Purpose"
-              icon={FileText}
-              accentColor={accentColor}
-              delay={0.55}
-            >
+            </SlimField>
+
+            <SlimField label="Loan Purpose" delay={0.36}>
               <select
                 data-ocid="apply.purpose.select"
                 defaultValue="Home Renovation"
@@ -2870,13 +2910,9 @@ function ApplicationFormStep({
                 <option>Debt Consolidation</option>
                 <option>Others</option>
               </select>
-            </FormField>
-            <FormField
-              label="Preferred Tenure"
-              icon={Calendar}
-              accentColor={accentColor}
-              delay={0.6}
-            >
+            </SlimField>
+
+            <SlimField label="Preferred Tenure" delay={0.38}>
               <input
                 type="text"
                 defaultValue="36 months"
@@ -2885,13 +2921,9 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("tenure")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-            <FormField
-              label="City"
-              icon={MapPin}
-              accentColor={accentColor}
-              delay={0.65}
-            >
+            </SlimField>
+
+            <SlimField label="City" delay={0.4}>
               <input
                 type="text"
                 defaultValue="Mumbai"
@@ -2900,39 +2932,38 @@ function ApplicationFormStep({
                 onFocus={() => setFocusedField("city")}
                 onBlur={() => setFocusedField(null)}
               />
-            </FormField>
-          </div>
-        </div>
+            </SlimField>
+          </SectionCard>
 
-        {/* Submit */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.7 }}
-          className="mt-8"
-        >
-          <button
-            type="submit"
-            data-ocid="apply.submit_button"
-            className="w-full py-4 rounded-xl font-extrabold text-base text-white transition-all hover:opacity-90 active:scale-[0.98] shadow-lg"
-            style={{
-              background: `linear-gradient(135deg, ${lender.logoColor}, ${lender.logoColor}99)`,
-              boxShadow: `0 8px 32px ${lender.logoColor}30`,
-            }}
+          {/* Submit */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.45 }}
+            className="pt-2"
           >
-            Submit Application →
-          </button>
-          <p className="text-center text-xs mt-3 leading-relaxed text-muted-foreground">
-            By submitting, you authorise {lender.name} to access your credit
-            information and process your loan application.
-          </p>
-        </motion.div>
-      </form>
+            <button
+              type="submit"
+              data-ocid="apply.submit_button"
+              className="w-full h-[52px] rounded-2xl font-extrabold text-base text-white transition-all hover:opacity-90 active:scale-[0.98] shadow-lg"
+              style={{
+                background: `linear-gradient(135deg, ${lender.logoColor}, ${lender.logoColor}cc)`,
+                boxShadow: `0 8px 28px ${lender.logoColor}35`,
+              }}
+            >
+              Submit Application →
+            </button>
+            <p className="text-center text-[11px] mt-3 leading-relaxed text-gray-400">
+              By submitting, you authorise {lender.name} to access your credit
+              information and process your loan application.
+            </p>
+          </motion.div>
+        </form>
+      </div>
     </div>
   );
 }
 
-// ─── Thank You Step ───────────────────────────────────────────────────────────
 function ThankYouStep({
   lender,
   name,
