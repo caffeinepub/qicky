@@ -1959,7 +1959,7 @@ function useCountdown(initialSeconds: number) {
   return `${h}:${m}:${s}`;
 }
 
-// ─── Lender Card ──────────────────────────────────────────────────────────────
+// ─── Lender Card (Card Grid) ──────────────────────────────────────────────────
 function LenderCard({
   lender,
   countdown,
@@ -1971,166 +1971,191 @@ function LenderCard({
   index: number;
   onApply: (lender: Lender) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
   const isBest = lender.bestMatch;
+
+  const approvalColor =
+    lender.approvalChance >= 85
+      ? "linear-gradient(90deg, #059669, #34d399)"
+      : lender.approvalChance >= 70
+        ? "linear-gradient(90deg, #d97706, #fbbf24)"
+        : "linear-gradient(90deg, #dc2626, #f87171)";
+
+  const approvalTextColor =
+    lender.approvalChance >= 85
+      ? "#059669"
+      : lender.approvalChance >= 70
+        ? "#d97706"
+        : "#dc2626";
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -24 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.07 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
       data-ocid={`offers.item.${index + 1}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative flex items-center gap-3 px-4 py-3 transition-all duration-200 cursor-default"
+      whileHover={{ y: -3, transition: { duration: 0.18 } }}
+      className="relative flex flex-col rounded-2xl bg-white overflow-hidden cursor-default"
       style={{
-        borderLeft: `3px solid ${isBest ? "oklch(0.40 0.14 12)" : lender.logoColor}`,
-        background: hovered
-          ? isBest
-            ? "oklch(0.40 0.14 12 / 0.05)"
-            : `${lender.logoColor}08`
-          : isBest
-            ? "oklch(0.40 0.14 12 / 0.025)"
-            : "white",
-        transform: hovered ? "translateY(-1px)" : "translateY(0px)",
-        boxShadow: hovered
-          ? "0 4px 16px rgba(0,0,0,0.08)"
-          : isBest
-            ? "0 2px 8px rgba(0,0,0,0.04)"
-            : "none",
-        borderBottom: "1px solid #f1f3f5",
+        boxShadow: isBest
+          ? "0 2px 16px oklch(0.40 0.14 12 / 0.12), 0 0 0 2px oklch(0.40 0.14 12 / 0.25)"
+          : "0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.06)",
       }}
     >
-      {/* Col 1: Lender identity (flex ~28%) */}
-      <div
-        className="flex items-center gap-2.5 min-w-0"
-        style={{ flex: "0 0 28%" }}
-      >
+      {/* Best Match top bar */}
+      {isBest && (
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-xs shrink-0 shadow-sm"
-          style={{ backgroundColor: lender.logoColor }}
-        >
-          {lender.logoInitial}
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-extrabold text-foreground text-xs leading-tight">
-              {lender.name}
-            </span>
-            <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
-              style={
-                lender.category === "nbfc"
-                  ? {
-                      background: "oklch(0.40 0.14 12 / 0.08)",
-                      color: "oklch(0.40 0.14 12)",
-                    }
-                  : {
-                      background: "oklch(0.55 0.14 155 / 0.10)",
-                      color: "oklch(0.35 0.14 155)",
-                    }
-              }
+          className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
+          style={{
+            background:
+              "linear-gradient(90deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))",
+          }}
+        />
+      )}
+
+      <div className="p-5 flex flex-col flex-1">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-extrabold text-sm shrink-0 shadow-sm"
+              style={{ backgroundColor: lender.logoColor }}
             >
-              {lender.category === "nbfc" ? "NBFC" : "SFB"}
-            </span>
+              {lender.logoInitial}
+            </div>
+            <div>
+              <div className="font-extrabold text-foreground text-sm leading-tight">
+                {lender.name}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                  style={
+                    lender.category === "nbfc"
+                      ? {
+                          background: "oklch(0.40 0.14 12 / 0.08)",
+                          color: "oklch(0.40 0.14 12)",
+                        }
+                      : {
+                          background: "oklch(0.55 0.14 155 / 0.10)",
+                          color: "oklch(0.35 0.14 155)",
+                        }
+                  }
+                >
+                  {lender.category === "nbfc" ? "NBFC" : "SFB"}
+                </span>
+                {lender.recommended && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600">
+                    Top Pick
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+          <div className="flex flex-col items-end gap-1 shrink-0">
             {isBest && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brand text-white leading-none">
+              <span
+                className="text-[10px] font-extrabold px-2.5 py-1 rounded-full text-white"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))",
+                }}
+              >
                 BEST
               </span>
             )}
-            {lender.recommended && (
-              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 leading-none">
-                🔥 Top Pick
-              </span>
-            )}
             {lender.limitedOffer && (
-              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 leading-none">
-                ⏰ {countdown}
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
+                ⏱ {countdown}
               </span>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Col 2: Rate */}
-      <div className="text-center" style={{ flex: "0 0 11%" }}>
-        <div className="font-extrabold text-foreground text-sm leading-none">
-          {lender.interestRate}%
-        </div>
-        <div className="text-[10px] text-muted-foreground mt-0.5">p.a.</div>
-      </div>
-
-      {/* Col 3: Max Loan */}
-      <div className="text-center" style={{ flex: "0 0 13%" }}>
-        <div className="font-bold text-foreground text-xs leading-tight">
-          ₹{lender.maxAmount}
-        </div>
-        <div className="text-[10px] text-muted-foreground">max</div>
-      </div>
-
-      {/* Col 4: Tenure */}
-      <div className="text-center" style={{ flex: "0 0 10%" }}>
-        <div className="font-bold text-foreground text-xs">{lender.tenure}</div>
-        <div className="text-[10px] text-muted-foreground">yrs</div>
-      </div>
-
-      {/* Col 5: Fee */}
-      <div className="text-center" style={{ flex: "0 0 11%" }}>
-        <div className="font-bold text-foreground text-xs">
-          {lender.processingFee}
-        </div>
-        <div className="text-[10px] text-muted-foreground">fee</div>
-      </div>
-
-      {/* Col 6: Approval bar */}
-      <div style={{ flex: "0 0 15%" }}>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] text-muted-foreground">Approval</span>
+        {/* Hero rate */}
+        <div
+          className="flex items-baseline gap-1.5 mb-4 pb-4"
+          style={{ borderBottom: "1px solid #f1f3f5" }}
+        >
           <span
-            className="text-[10px] font-bold"
+            className="text-3xl font-extrabold tracking-tight"
             style={{ color: lender.logoColor }}
           >
-            {lender.approvalChance}%
+            {lender.interestRate}%
+          </span>
+          <span className="text-sm text-muted-foreground font-medium">
+            p.a. onwards
           </span>
         </div>
-        <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${lender.approvalChance}%` }}
-            transition={{
-              duration: 0.8,
-              delay: index * 0.07 + 0.3,
-              ease: "easeOut",
-            }}
-            className="h-full rounded-full"
-            style={{
-              background:
-                lender.approvalChance >= 90
-                  ? "linear-gradient(90deg, #10b981, #34d399)"
-                  : lender.approvalChance >= 75
-                    ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                    : "linear-gradient(90deg, #ef4444, #f87171)",
-            }}
-          />
-        </div>
-      </div>
 
-      {/* Col 7: CTA */}
-      <div className="flex justify-end" style={{ flex: "0 0 12%" }}>
+        {/* Stats grid */}
+        <div className="grid grid-cols-3 gap-2.5 mb-4">
+          <div className="bg-gray-50 rounded-xl p-2.5 text-center">
+            <div className="text-xs font-extrabold text-foreground leading-tight">
+              ₹{lender.maxAmount}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              Max Loan
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-2.5 text-center">
+            <div className="text-xs font-extrabold text-foreground leading-tight">
+              {lender.tenure}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              Tenure
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-2.5 text-center">
+            <div className="text-xs font-extrabold text-foreground leading-tight">
+              {lender.processingFee}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              Proc. Fee
+            </div>
+          </div>
+        </div>
+
+        {/* Approval bar */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-semibold text-muted-foreground">
+              Approval Probability
+            </span>
+            <span
+              className="text-xs font-extrabold"
+              style={{ color: approvalTextColor }}
+            >
+              {lender.approvalChance}%
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${lender.approvalChance}%` }}
+              transition={{
+                duration: 0.9,
+                delay: index * 0.08 + 0.35,
+                ease: "easeOut",
+              }}
+              className="h-full rounded-full"
+              style={{ background: approvalColor }}
+            />
+          </div>
+        </div>
+
+        {/* Apply CTA */}
         <button
           type="button"
           onClick={() => onApply(lender)}
           data-ocid={`offers.item.${index + 1}.button`}
-          className="px-3 py-2 rounded-xl font-bold text-xs text-white whitespace-nowrap transition-all hover:opacity-90 active:scale-95"
+          className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-[0.98] mt-auto"
           style={{
             background: isBest
-              ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))"
-              : `linear-gradient(135deg, ${lender.logoColor}ee, ${lender.logoColor}aa)`,
+              ? "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))"
+              : `linear-gradient(135deg, ${lender.logoColor}ee, ${lender.logoColor}bb)`,
           }}
         >
-          Apply →
+          Apply Now →
         </button>
       </div>
     </motion.div>
@@ -2168,91 +2193,80 @@ function OffersStep({
   const bestLender = LENDERS.find((l) => l.bestMatch)!;
 
   const SORT_TABS: { key: SortMode; label: string }[] = [
-    { key: "best", label: "✅ Best Match" },
+    { key: "best", label: "Best Match" },
     { key: "rate", label: "Lowest Rate" },
     { key: "amount", label: "Highest Amount" },
   ];
 
-  const COL_HEADERS = [
-    { label: "Lender", flex: "0 0 28%" },
-    { label: "Rate", flex: "0 0 11%" },
-    { label: "Max Loan", flex: "0 0 13%" },
-    { label: "Tenure", flex: "0 0 10%" },
-    { label: "Fee", flex: "0 0 11%" },
-    { label: "Approval", flex: "0 0 15%" },
-    { label: "Action", flex: "0 0 12%" },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#F8F6F5] pb-24">
+    <div className="min-h-screen bg-[#F7F6F4] pb-28">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm px-4 py-3 flex items-center gap-3 border-b border-gray-200">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-4 py-3.5 flex items-center gap-3 border-b border-gray-100 shadow-sm">
         <button
           type="button"
           onClick={onBack}
           data-ocid="offers.back.button"
-          className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-200"
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 border border-gray-100"
         >
           <ChevronLeft className="w-4 h-4 text-muted-foreground" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white fill-white" />
+          <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+            <Zap className="w-4 h-4 text-white fill-white" />
           </div>
           <span className="font-extrabold text-foreground text-base">
             Qicky
           </span>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-muted-foreground">Live offers</span>
+          <span className="text-xs text-muted-foreground font-medium">
+            Live offers
+          </span>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pt-5">
+      <div className="max-w-3xl mx-auto px-4 pt-7">
         {/* Hero text */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-4"
+          className="mb-6"
         >
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-light text-brand">
-              <CheckCircle2 className="w-3.5 h-3.5" />5 lenders matched ·
-              Updated just now
-            </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100 mb-3">
+            <CheckCircle2 className="w-3.5 h-3.5" />5 lenders matched · Updated
+            just now
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-foreground leading-tight mt-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
             Your Pre-Approved Offers,{" "}
-            <span className="text-brand">{firstName} 🎉</span>
+            <span style={{ color: "oklch(0.40 0.14 12)" }}>{firstName} 🎉</span>
           </h1>
-          <p className="text-muted-foreground text-xs mt-1">
-            Compare all offers below and apply instantly.
+          <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
+            Compare and apply instantly — all offers reserved for you.
           </p>
         </motion.div>
 
-        {/* Sort tabs */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+        {/* Sort tabs — pill style */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
           {SORT_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setSort(tab.key)}
               data-ocid={`offers.${tab.key}.tab`}
-              className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border"
+              className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
               style={
                 sort === tab.key
                   ? {
-                      background:
-                        "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))",
+                      background: "oklch(0.40 0.14 12)",
                       color: "white",
-                      borderColor: "transparent",
+                      boxShadow: "0 2px 8px oklch(0.40 0.14 12 / 0.3)",
                     }
                   : {
                       background: "white",
                       color: "#6b7280",
-                      borderColor: "#e5e7eb",
+                      border: "1px solid #e5e7eb",
                     }
               }
             >
@@ -2261,69 +2275,43 @@ function OffersStep({
           ))}
         </div>
 
-        {/* Comparison table */}
+        {/* Offer cards grid */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white mb-4"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
         >
-          {/* Column headers */}
-          <div
-            className="flex items-center gap-3 px-4 py-2.5"
-            style={{
-              background:
-                "linear-gradient(90deg, oklch(0.40 0.14 12 / 0.06), oklch(0.50 0.16 12 / 0.03))",
-              borderBottom: "1.5px solid oklch(0.40 0.14 12 / 0.12)",
-              paddingLeft: "calc(1rem + 3px)",
-            }}
-          >
-            {COL_HEADERS.map((col) => (
-              <div
-                key={col.label}
-                className="text-[10px] font-bold uppercase tracking-widest text-brand/70"
-                style={{ flex: col.flex }}
-              >
-                {col.label}
-              </div>
-            ))}
-          </div>
-
-          {/* Lender rows */}
-          <div className="divide-y divide-gray-50">
-            {sortedLenders.map((lender, i) => (
-              <LenderCard
-                key={lender.id}
-                lender={lender}
-                countdown={countdown}
-                index={i}
-                onApply={onApply}
-              />
-            ))}
-          </div>
+          {sortedLenders.map((lender, i) => (
+            <LenderCard
+              key={lender.id}
+              lender={lender}
+              countdown={countdown}
+              index={i}
+              onApply={onApply}
+            />
+          ))}
         </motion.div>
 
         {/* Trust strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="rounded-2xl p-3 flex items-center justify-around mb-4 bg-white border border-gray-200"
+          transition={{ duration: 0.4, delay: 0.55 }}
+          className="rounded-2xl p-4 flex items-center justify-around mb-4 bg-white border border-gray-100 shadow-sm"
         >
           <div className="text-center">
-            <div className="text-base font-extrabold text-foreground">
-              5.7cr+
-            </div>
+            <div className="text-lg font-extrabold text-foreground">5.7cr+</div>
             <div className="text-xs text-muted-foreground">Customers</div>
           </div>
-          <div className="w-px h-7 bg-gray-200" />
+          <div className="w-px h-8 bg-gray-100" />
           <div className="text-center">
-            <div className="text-base font-extrabold text-foreground">65+</div>
+            <div className="text-lg font-extrabold text-foreground">65+</div>
             <div className="text-xs text-muted-foreground">Lenders</div>
           </div>
-          <div className="w-px h-7 bg-gray-200" />
+          <div className="w-px h-8 bg-gray-100" />
           <div className="text-center">
-            <div className="text-base font-extrabold text-foreground">
+            <div className="text-lg font-extrabold text-foreground">
               ₹65k Cr+
             </div>
             <div className="text-xs text-muted-foreground">Disbursed</div>
@@ -2335,23 +2323,29 @@ function OffersStep({
       <AnimatePresence>
         {showStickyBar && (
           <motion.div
-            initial={{ y: 80, opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
+            exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="fixed bottom-0 left-0 right-0 z-40 px-4 py-3 bg-white/95 backdrop-blur-sm"
-            style={{ borderTop: "2px solid oklch(0.40 0.14 12 / 0.3)" }}
+            className="fixed bottom-0 left-0 right-0 z-40 px-4 py-4 bg-white/95 backdrop-blur-md"
+            style={{
+              borderTop: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 -4px 24px rgba(0,0,0,0.08)",
+            }}
           >
-            <div className="max-w-4xl mx-auto flex items-center gap-3">
+            <div className="max-w-3xl mx-auto flex items-center gap-3">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-white shrink-0"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center font-extrabold text-white shrink-0 text-sm"
                 style={{ backgroundColor: bestLender.logoColor }}
               >
                 {bestLender.logoInitial}
               </div>
               <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  Best match for you
+                </div>
                 <div className="text-foreground font-bold text-sm leading-tight">
-                  ⚡ {bestLender.name}
+                  {bestLender.name}
                 </div>
                 <div className="text-muted-foreground text-xs">
                   {bestLender.approvalChance}% approval ·{" "}
@@ -2362,10 +2356,11 @@ function OffersStep({
                 type="button"
                 onClick={() => onApply(bestLender)}
                 data-ocid="offers.apply.primary_button"
-                className="shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm text-white"
+                className="shrink-0 px-6 py-3 rounded-2xl font-bold text-sm text-white"
                 style={{
                   background:
-                    "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.50 0.16 12))",
+                    "linear-gradient(135deg, oklch(0.40 0.14 12), oklch(0.52 0.16 12))",
+                  boxShadow: "0 2px 12px oklch(0.40 0.14 12 / 0.35)",
                 }}
               >
                 Apply Now →
